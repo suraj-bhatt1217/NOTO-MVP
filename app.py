@@ -280,12 +280,20 @@ def dashboard():
     user_data = user_doc.to_dict()
 
     # Format the data for the template
+    minutes_used = user_data.get("usage", {}).get("minutes_used_this_month", 0)
+    plan_type = user_data.get("subscription", {}).get("plan", "free")
+    minutes_limit = SUBSCRIPTION_PLANS[plan_type]["minutes_limit"]
+    
+    # Calculate percentage used - ensure it's a valid number to prevent display issues
+    percentage_used = 0
+    if minutes_limit > 0:
+        percentage_used = round((minutes_used / minutes_limit) * 100, 1)
+    
     plan_data = {
-        "plan": user_data.get("subscription", {}).get("plan", "free"),
-        "minutes_used": user_data.get("usage", {}).get("minutes_used_this_month", 0),
-        "minutes_limit": SUBSCRIPTION_PLANS[
-            user_data.get("subscription", {}).get("plan", "free")
-        ]["minutes_limit"],
+        "plan": plan_type,
+        "minutes_used": minutes_used,
+        "minutes_limit": minutes_limit,
+        "percentage_used": percentage_used,
         "next_billing_date": user_data.get("subscription", {})
         .get("next_billing_date", datetime.now())
         .strftime("%B %d, %Y"),

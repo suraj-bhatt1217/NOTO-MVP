@@ -195,6 +195,13 @@
     overflow: hidden;
 }
 
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-light));
+    border-radius: var(--radius-pill);
+    transition: width 0.5s ease-in-out;
+}
+
 .usage-bar {
     height: 100%;
     background: linear-gradient(90deg, var(--accent-color), var(--accent-dark));

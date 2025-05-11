@@ -43,7 +43,7 @@
           <h2>Your Usage</h2>
           <div class="usage-meter">
             <div class="usage-progress">
-              <div class="progress-bar" data-progress="{{ (plan_data.minutes_used / plan_data.minutes_limit) * 100 }}"></div>
+              <div id="usageProgressBar" class="progress-bar" data-percent="{{ plan_data.percentage_used }}"></div>
             </div>
             <p>{{ plan_data.minutes_used }} / {{ plan_data.minutes_limit }} minutes used</p>
           </div>
@@ -98,5 +98,19 @@
     <script src="{{ url_for('static', filename='login-auth.js') }}" type="module"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}" type="module"></script>
     <script src="{{ url_for('static', filename='dashboard.js') }}" type="module"></script>
+    
+    <!-- Custom script to fix progress bar -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Get the progress bar element and percentage value
+        const progressBar = document.getElementById('usageProgressBar');
+        if (progressBar) {
+          const percentValue = progressBar.getAttribute('data-percent');
+          // Apply width style directly
+          progressBar.style.width = `${percentValue}%`;
+          console.log('Setting progress bar width to:', `${percentValue}%`);
+        }
+      });
+    </script>
   </body>
 </html>

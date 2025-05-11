@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize progress bars based on data-progress attributes
   const progressBars = document.querySelectorAll('.progress-bar[data-progress]');
   progressBars.forEach(bar => {
-    const progress = parseFloat(bar.getAttribute('data-progress'));
+    const progressAttr = bar.getAttribute('data-progress');
+    const progress = progressAttr !== null && !isNaN(parseFloat(progressAttr)) ? parseFloat(progressAttr) : 0;
+    console.log('Initializing progress bar with width:', `${progress}%`);
     bar.style.width = `${progress}%`;
   });
 
@@ -190,13 +192,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Find the progress bar and update it
             const progressBar = document.querySelector('.progress-bar');
             if (progressBar) {
-                progressBar.style.width = `${data.percentage_used}%`;
+                // Ensure percentage_used exists and is a number
+                const percentage = data.percentage_used !== undefined && !isNaN(data.percentage_used) ? 
+                    data.percentage_used : 0;
+                    
+                // Apply the width style
+                progressBar.style.width = `${percentage}%`;
+                console.log('Setting progress bar width to:', `${percentage}%`);
             }
             
             // Update usage text
             const usageText = document.querySelector('.usage-meter p');
             if (usageText) {
-                usageText.textContent = `${data.minutes_used} / ${data.minutes_limit} minutes used`;
+                usageText.textContent = `${data.minutes_used || 0} / ${data.minutes_limit || 0} minutes used`;
             }
             
         } catch (error) {
