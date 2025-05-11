@@ -140,35 +140,54 @@ function authSignInWithEmail() {
 
 
 function authCreateAccountWithEmail() {
-
+    // Clear previous error messages
+    errorMsgEmail.textContent = ""
+    errorMsgPassword.textContent = ""
+    
     const email = emailInputEl.value
     const password = passwordInputEl.value
+    
+    // Add loading indicator to button
+    if (createAccountButtonEl) {
+        createAccountButtonEl.innerHTML = "Creating Account..."
+        createAccountButtonEl.disabled = true
+    }
 
     createUserWithEmailAndPassword(auth, email, password)
-        .then(async (userCredential) => {
+        .then((userCredential) => {
             // Signed in 
-            
             const user = userCredential.user;
-
-            await addNewUserToFirestore(user)
-            setTimeout(100)
-
+            
+            // Show success message
+            if (errorMsgEmail) {
+                errorMsgEmail.textContent = "Account created successfully! Redirecting..."
+                errorMsgEmail.style.color = "green"
+            }
+            
+            // Get ID token and login user
             user.getIdToken().then(function(idToken) {
                 loginUser(user, idToken)
             });
-
         })
         .catch((error) => {
             const errorCode = error.code;
-
+            
+            // Reset button
+            if (createAccountButtonEl) {
+                createAccountButtonEl.innerHTML = "Sign Up"
+                createAccountButtonEl.disabled = false
+            }
+            
             if (errorCode === "auth/invalid-email") {
                 errorMsgEmail.textContent = "Invalid email"
             } else if (errorCode === "auth/weak-password") {
                 errorMsgPassword.textContent = "Invalid password - must be at least 6 characters"
             } else if (errorCode === "auth/email-already-in-use") {
                 errorMsgEmail.textContent = "An account already exists for this email."
+            } else {
+                // Generic error message for other errors
+                errorMsgEmail.textContent = "Error creating account: " + error.message
             }
-
         });
 
 }
