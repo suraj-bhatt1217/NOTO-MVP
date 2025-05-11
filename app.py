@@ -80,24 +80,24 @@ SUBSCRIPTION_PLANS = {
         "name": "Free Plan",
         "minutes_limit": 30,  # 30 minutes per month
         "price": 0,
-        "currency": "INR",
+        "currency": "USD",
         "features": ["Basic Summaries", "Limited to 30 min/month"],
     },
     "pro": {
         "name": "Pro Plan",
-        "minutes_limit": 300,  # 300 minutes per month
-        "price": 29900,  # ₹299 in paise
-        "currency": "INR",
-        "features": ["Premium Summaries", "300 min/month", "Unlimited Videos"],
+        "minutes_limit": 100,  # 100 minutes per month
+        "price": 1499,  # $14.99
+        "currency": "USD",
+        "features": ["Premium Summaries", "100 min/month", "Unlimited Videos"],
     },
     "elite": {
         "name": "Elite Plan",
-        "minutes_limit": 1000,  # 1000 minutes per month
-        "price": 79900,  # ₹799 in paise
-        "currency": "INR",
+        "minutes_limit": 300,  # 300 minutes per month
+        "price": 2999,  # $29.99
+        "currency": "USD",
         "features": [
             "Premium Summaries",
-            "1000 min/month",
+            "300 min/month",
             "Priority Processing",
             "Premium Support",
         ],
@@ -691,37 +691,128 @@ def get_video_transcript(video_id):
 def generate_summary(transcript, plan_type, title, channel):
     # Different summary types based on subscription plan
     if plan_type == "free":
-        system_prompt = """You are an AI assistant that creates basic summaries of YouTube video transcripts. 
-        Create a simple summary that covers the main points in a concise way."""
-        max_tokens = 500
-    else:  # 'pro' or 'elite'
+        system_prompt = """You are an AI assistant that creates comprehensive summaries of YouTube video transcripts.
+        Create a thorough summary that covers all important points in the transcript.
+        Don't omit critical information, even for longer videos.
+        Format your response with clear sections and good readability."""
+        max_tokens = 3000  # Increased token count for free tier
+    elif plan_type == "pro":
         system_prompt = """You are an AI assistant that creates premium structured summaries of YouTube video transcripts.
         Format your response with these sections:
-        1. SUMMARY: A concise overview of the video content
-        2. KEY POINTS: Bullet points of the most important information
+        1. SUMMARY: A thorough overview of the video content
+        2. KEY POINTS: Comprehensive bullet points of the important information
         3. INSIGHTS: Notable observations or takeaways
         4. ACTIONABLE TIPS: Practical advice from the video
+        5. DETAILED NOTES: Section-by-section breakdown of content
         Use markdown formatting for better readability."""
-        max_tokens = 1000 if plan_type == "pro" else 1500
+        max_tokens = 4000  # Increased token count for pro tier
+    else:  # 'elite'
+        system_prompt = """You are an AI assistant that creates enterprise-grade summaries of YouTube video transcripts.
+        Format your response with these sections:
+        1. EXECUTIVE SUMMARY: A concise overview for quick understanding
+        2. COMPREHENSIVE BREAKDOWN: Detailed coverage of all major topics
+        3. KEY POINTS: Thorough bullet points of all important information
+        4. INSIGHTS & ANALYSIS: Deep observations and contextual analysis
+        5. ACTIONABLE TAKEAWAYS: Practical advice organized by relevance
+        6. Q&A SECTION: Anticipated questions and answers based on content
+        7. RELATED RESOURCES: Suggestions for further information (if mentioned)
+        Use markdown formatting for optimal readability."""
+        max_tokens = 6000  # Significantly increased token count for elite tier
 
-    prompt = f"Video Title: {title}\nChannel: {channel}\n\nTranscript: {transcript[:15000]}"  # Limit transcript size
+    # Process transcript in chunks if it's too long
+    def chunk_transcript(text, chunk_size=12000, overlap=2000):
+        """Split transcript into overlapping chunks to preserve context."""
+        if len(text) <= chunk_size:
+            return [text]
+            
+        chunks = []
+        start = 0
+        while start < len(text):
+            end = min(start + chunk_size, len(text))
+            
+            # Try to find a sentence break to avoid cutting mid-sentence
+            if end < len(text):
+                sentence_breaks = ['.', '!', '?', '\n']
+                for i in range(min(500, end - start), 0, -1):  # Look back up to 500 chars
+                    if text[end - i] in sentence_breaks:
+                        end = end - i + 1  # Include the period
+                        break
+            
+            chunks.append(text[start:end])
+            start = end - overlap  # Create overlap between chunks
+            
+        return chunks
 
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",  # Using GPT-4o-mini as it's more affordable while offering good quality
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=max_tokens,
-            temperature=0.5,
-        )
+    # Process transcript in chunks if needed
+    transcript_chunks = chunk_transcript(transcript)
+    
+    # For single chunks or free tier, process directly
+    if len(transcript_chunks) == 1 or plan_type == "free":
+        prompt = f"Video Title: {title}\nChannel: {channel}\n\nTranscript: {transcript_chunks[0]}"
+        
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4o" if plan_type != "free" else "gpt-4o-mini",  # Use full GPT-4o for paid tiers
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=max_tokens,
+                temperature=0.5,
+            )
 
-        return response.choices[0].message.content
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error generating summary: {e}")
+            return "Error generating summary. Please try again later."
+    
+    # For longer transcripts on paid tiers, use a multi-pass approach
+    else:
+        # First pass: Generate summaries for each chunk
+        chunk_summaries = []
+        chunk_system_prompt = """Summarize this portion of a transcript comprehensively.
+        Don't conclude or wrap up - this is just one part of a longer transcript.
+        Maintain all key information, including specific details, numbers, and technical terms."""
+        
+        for i, chunk in enumerate(transcript_chunks):
+            try:
+                chunk_prompt = f"Video Title: {title}\nChannel: {channel}\n\nThis is part {i+1} of {len(transcript_chunks)} of the transcript:\n\n{chunk}"
+                
+                response = openai.chat.completions.create(
+                    model="gpt-4o",  # Use full GPT-4o for chunk processing
+                    messages=[
+                        {"role": "system", "content": chunk_system_prompt},
+                        {"role": "user", "content": chunk_prompt},
+                    ],
+                    max_tokens=4000,
+                    temperature=0.3,  # Lower temperature for more factual intermediate summaries
+                )
+                
+                chunk_summaries.append(response.choices[0].message.content)
+            except Exception as e:
+                print(f"Error processing chunk {i+1}: {e}")
+                chunk_summaries.append(f"[Error processing this section of the transcript: {str(e)}]")
+        
+        # Second pass: Combine the summaries into a final, structured result
+        combined_summary = "\n\n---\n\n".join(chunk_summaries)
+        
+        final_prompt = f"Video Title: {title}\nChannel: {channel}\n\nBelow are summaries of different sections of the transcript. Please create a cohesive final summary according to the specified format:\n\n{combined_summary}"
+        
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4o",  # Use full GPT-4o for final synthesis
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": final_prompt},
+                ],
+                max_tokens=max_tokens,
+                temperature=0.5,
+            )
 
-    except Exception as e:
-        print(f"Error generating summary: {e}")
-        return "Error generating summary. Please try again later."
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error generating final summary: {e}")
+            return "Error generating comprehensive summary. Please try again later."
 
 
 # Parse ISO 8601 duration format (PT1H30M15S) to seconds

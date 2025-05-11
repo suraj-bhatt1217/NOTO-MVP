@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update modal content
             paymentPlanName.textContent = `Subscribe to ${data.product_name}`;
-            paymentAmount.textContent = `₹${data.amount / 100}`;
+            paymentAmount.textContent = `$${data.amount / 100}`;
             
             // Show payment modal
             paymentModal.style.display = 'block';

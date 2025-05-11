@@ -3,6 +3,7 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/default_logo.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,17 +21,18 @@
 
     <main class="pricing-container">
       <div class="page-header">
-        <h1>Choose Your Plan</h1>
-        <p class="subtitle">Get premium notes with our advanced YouTube video summarization</p>
+        <h1>Choose the Perfect Plan for Your Needs</h1>
+        <p class="subtitle">Unlock the full potential of your learning with our powerful video summarization tools</p>
       </div>
 
       <div class="pricing-grid">
         {% for plan_id, plan in plans.items() %}
-        <div class="pricing-card {% if plan_id == current_plan %}active{% endif %}">
+        <div class="pricing-card {% if plan_id == current_plan %}active{% endif %} {% if plan_id == 'pro' %}popular-plan{% endif %}">
+          {% if plan_id == 'pro' %}<div class="popular-badge">MOST POPULAR</div>{% endif %}
           <div class="pricing-card-header">
-            <h2>{{ plan.name }}</h2>
+            <h2>{% if plan_id == 'free' %}Essential Notes{% elif plan_id == 'pro' %}Professional Insights{% elif plan_id == 'elite' %}Enterprise Knowledge{% else %}{{ plan.name }}{% endif %}</h2>
             <div class="pricing-amount">
-              <span class="currency">₹</span>
+              <span class="currency">$</span>
               <span class="amount">{{ plan.price // 100 }}</span>
               {% if plan.price > 0 %}
               <span class="billing-cycle">/month</span>
@@ -57,7 +59,7 @@
               <button class="subscribe-btn" data-plan-id="{{ plan_id }}">Subscribe</button>
               {% endif %}
             {% else %}
-              <a href="{{ url_for('login') }}" class="btn-primary">Login to Subscribe</a>
+              <a href="{{ url_for('login') }}" class="btn-primary">Login to Start Saving Time</a>
             {% endif %}
           </div>
         </div>
@@ -70,7 +72,7 @@
         <span class="close-modal">&times;</span>
         <h2 id="payment-plan-name">Subscribe to Pro Plan</h2>
         <div class="payment-details">
-          <p>Amount: <span id="payment-amount">₹299</span></p>
+          <p>Amount: <span id="payment-amount">$14.99</span></p>
           <p>Billing Cycle: Monthly</p>
           <div id="razorpay-container"></div>
         </div>

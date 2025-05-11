@@ -11,6 +11,7 @@
 @import 'navigation.css';
 @import 'buttons.css';
 @import 'cards.css';
+@import 'cards-update.css'; /* New enhanced card styles */
 @import 'forms.css';
 @import 'modal.css';
 @import 'notification.css'; 
