@@ -8,3 +8,4 @@ openai
 razorpay
 flask-cors
 python-dateutil
+setuptools
