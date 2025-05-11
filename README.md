@@ -1,6 +1,6 @@
-# NOTO - YouTube Video Summarization App
+# NotoAI - YouTube Video Summarization App
 
-NOTO is a powerful web application that allows users to convert YouTube videos into concise, structured notes using AI. Save hours by automatically extracting key insights from any YouTube video with transcripts available.
+NotoAI is a powerful web application that allows users to convert YouTube videos into concise, structured notes using AI. Save hours by automatically extracting key insights from any YouTube video with transcripts available.
 
 ## Features
 

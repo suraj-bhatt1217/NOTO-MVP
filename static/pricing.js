@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 key: data.key_id,
                 amount: data.amount,
                 currency: data.currency,
-                name: 'NOTO',
+                name: 'NotoAI',
                 description: data.description,
                 order_id: data.order_id,
                 handler: function(response) {
