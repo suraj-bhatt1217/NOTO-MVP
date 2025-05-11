@@ -238,12 +238,52 @@ def signup():
 
 @app.route("/terms")
 def terms():
-    return render_template("terms.html")
+    is_authenticated = "user" in session
+    
+    # Default values for non-authenticated users
+    plan_data = {"plan": "free"}
+    
+    # If user is authenticated, get their plan data
+    if is_authenticated:
+        user_id = session["user"]["uid"]
+        user_ref = db.collection("users").document(user_id)
+        user_doc = user_ref.get()
+        
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            plan_data = user_data.get("subscription", {"plan": "free"})
+    
+    return render_template(
+        "terms.html", 
+        is_authenticated=is_authenticated,
+        plan_data=plan_data,
+        plans=SUBSCRIPTION_PLANS
+    )
 
 
 @app.route("/privacy")
 def privacy():
-    return render_template("privacy.html")
+    is_authenticated = "user" in session
+    
+    # Default values for non-authenticated users
+    plan_data = {"plan": "free"}
+    
+    # If user is authenticated, get their plan data
+    if is_authenticated:
+        user_id = session["user"]["uid"]
+        user_ref = db.collection("users").document(user_id)
+        user_doc = user_ref.get()
+        
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            plan_data = user_data.get("subscription", {"plan": "free"})
+    
+    return render_template(
+        "privacy.html", 
+        is_authenticated=is_authenticated,
+        plan_data=plan_data,
+        plans=SUBSCRIPTION_PLANS
+    )
 
 
 @app.route("/reset-password")
