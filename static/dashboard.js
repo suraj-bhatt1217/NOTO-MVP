@@ -121,22 +121,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 }),
             });
             
+            // Parse the response data once and store it
+            const responseData = await response.json();
+            
             if (!response.ok) {
-                const errorData = await response.json();
-                
-                // Check if this is a plan limit error and show a more detailed message
-                if (errorData.error === 'Plan limit would be exceeded' && errorData.message) {
-                    throw new Error(errorData.message);
+                // Use the already parsed response data for error handling
+                if (responseData.error === 'Plan limit would be exceeded' && responseData.message) {
+                    throw new Error(responseData.message);
                 } else {
-                    throw new Error(errorData.error || 'Failed to generate summary');
+                    throw new Error(responseData.error || 'Failed to generate summary');
                 }
             }
             
-            const data = await response.json();
+            // If we reach here, responseData contains the successful response
             
             // Update summary modal content
-            summaryTitle.textContent = data.title;
-            summaryBody.innerHTML = markdownToHTML(data.summary);
+            summaryTitle.textContent = responseData.title;
+            summaryBody.innerHTML = markdownToHTML(responseData.summary);
             
             // Hide loading spinner and show content
             summaryLoading.classList.add('hidden');
