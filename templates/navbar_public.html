@@ -1,0 +1,33 @@
+<div class="navbar">
+    <div class="navbar-left">
+        <a href="{{ url_for('home') }}" class="navbar-logo">
+            <img class="logo-img" src="{{ url_for('static', filename='images/default_logo.png') }}" alt="NOTO Logo" onerror="this.src='{{ url_for('static', filename='images/fallback_logo.png') }}'; this.onerror=null;" />
+            <span class="logo-text"><span>NOTO</span></span>
+        </a>
+    </div>
+    
+    <button class="hamburger" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
+    
+    <div class="navbar-right" id="navbarRight">
+        <button class="closebtn" aria-label="Close menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        
+        <a href="{{ url_for('home') }}" class="navbar-item">Home</a>
+        <a href="{{ url_for('pricing') }}" class="navbar-item">Pricing</a>
+        
+        <div class="flex-row gap-sm">
+            <a href="{{ url_for('login') }}" class="btn btn-outline btn-small">Log In</a>
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-small">Sign Up</a>
+        </div>
+    </div>
+</div>

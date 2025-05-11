@@ -1,0 +1,10 @@
+flask
+firebase_admin
+gunicorn
+python-dotenv
+requests
+youtube-transcript-api
+openai
+razorpay
+flask-cors
+python-dateutil

@@ -1,0 +1,22 @@
+/* Main CSS file that imports all modules */
+
+/* Import variables first */
+@import 'variables.css';
+
+/* Base styles */
+@import 'reset.css';
+@import 'layout.css';
+
+/* Components */
+@import 'navigation.css';
+@import 'buttons.css';
+@import 'cards.css';
+@import 'forms.css';
+@import 'modal.css';
+@import 'notification.css'; 
+
+/* Page specific styles */
+@import 'pages.css';
+
+/* Import responsive styles last */
+@import 'responsive.css';

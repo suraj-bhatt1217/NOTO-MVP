@@ -1,0 +1,83 @@
+/* Layout Components */
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
+}
+
+main {
+    flex: 1 0 auto;
+    width: 100%;
+    padding: var(--space-xl) var(--space-md);
+    max-width: var(--container-max);
+    margin: 0 auto;
+    box-sizing: border-box;
+    position: relative;
+    z-index: var(--z-base);
+}
+
+section {
+    margin-bottom: var(--space-3xl);
+    position: relative;
+}
+
+.content-container {
+    max-width: var(--container-content);
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    width: 100%;
+}
+
+/* Utility Classes */
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.gap-sm {
+    gap: var(--space-sm);
+}
+
+.gap-md {
+    gap: var(--space-md);
+}
+
+.gap-lg {
+    gap: var(--space-lg);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}

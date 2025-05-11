@@ -1,0 +1,277 @@
+/* Buttons */
+.btn, .btn-primary, .btn-secondary, .btn-outline, .cta-button, .auth-button, .view-summary-btn, #download-notes-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    border: none;
+    outline: none;
+    gap: var(--space-sm);
+    min-width: 120px;
+}
+
+.btn-primary, .cta-button, .auth-button {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+    color: var(--primary-bg);
+    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+}
+
+.btn-primary:hover, .cta-button:hover, .auth-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.25);
+}
+
+.btn-primary:active, .cta-button:active, .auth-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(212, 175, 55, 0.2);
+}
+
+.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: translateY(1px);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+}
+
+.btn-outline:hover {
+    background-color: rgba(212, 175, 55, 0.1);
+    color: var(--accent-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+}
+
+.btn-outline:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(212, 175, 55, 0.1);
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-small {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    min-width: 100px;
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    min-width: unset;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn:disabled, .btn-primary:disabled, .btn-secondary:disabled, .btn-outline:disabled, .current-plan-btn {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Pulse effect for primary buttons on hover */
+.btn-primary:hover::after, .cta-button:hover::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+    animation: btn-pulse 1.5s infinite;
+    background-color: rgba(212, 175, 55, 0.7);
+    z-index: -1;
+}
+
+@keyframes btn-pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    }
+}
+
+/* Premium Subscription Buttons */
+.subscribe-btn {
+    background: linear-gradient(135deg, #8a2be2 0%, #4b0082 100%);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.8rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.subscribe-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.5);
+}
+
+.subscribe-btn:active {
+    transform: translateY(1px);
+}
+
+.subscribe-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.6s ease;
+}
+
+.subscribe-btn:hover::before {
+    left: 100%;
+}
+
+.subscribe-btn::after {
+    content: '→';
+    position: absolute;
+    right: 20px;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.subscribe-btn:hover::after {
+    opacity: 1;
+    right: 15px;
+}
+
+/* Payment button (Razorpay) custom styling */
+#razorpay-container button,
+.razorpay-payment-button {
+    background: linear-gradient(135deg, #00c853 0%, #009624 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.9rem 1.8rem !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    border-radius: var(--radius-md) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 6px 15px rgba(0, 200, 83, 0.3) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    width: 100% !important;
+    margin-top: 1.5rem !important;
+    display: block !important;
+}
+
+#razorpay-container button:hover,
+.razorpay-payment-button:hover {
+    transform: translateY(-3px) scale(1.03) !important;
+    box-shadow: 0 8px 20px rgba(0, 200, 83, 0.4) !important;
+    background: linear-gradient(135deg, #00e676 0%, #00c853 100%) !important;
+}
+
+/* Current plan button with premium styling */
+.current-plan-btn {
+    background: linear-gradient(135deg, #757575 0%, #424242 100%);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: not-allowed;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    margin-top: 1rem;
+    opacity: 0.8;
+}
+
+.current-plan-btn::before {
+    content: '✓';
+    position: absolute;
+    left: 15px;
+}
+
+/* Additional Button Styles */
+.upgrade-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    color: var(--accent-color);
+    background-color: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--accent-color);
+    margin-top: var(--space-md);
+}
+
+.upgrade-link:hover {
+    background-color: rgba(212, 175, 55, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+}
+
+.view-summary, .view-all {
+    color: var(--accent-color);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all var(--transition-normal);
+}
+
+.view-summary:hover, .view-all:hover {
+    color: var(--accent-light);
+    text-decoration: underline;
+}

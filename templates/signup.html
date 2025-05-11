@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth-styles.css') }}">
+    <title>Sign Up - YTNotes</title>
+</head>
+<body class="dark-theme auth-page">
+    <div class="auth-wrapper">
+        <main class="auth-container">
+            <div class="signup-form-container">
+                <div class="auth-logo">
+                    <img src="{{ url_for('static', filename='images/default_logo.png') }}" alt="NOTO Logo" onerror="handleImageError(this)" />
+                </div>
+                <div class="form-header">
+                    <h1>Create Account</h1>
+                    <p>Join NOTO today and start summarizing videos!</p>
+                </div>
+                
+                <div class="input-group">
+                    <label for="email-input">Email</label>
+                    <input type="email" id="email-input" placeholder="Enter your email">
+                    <p id="email-error-message" class="error-message"></p>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password-input">Password</label>
+                    <input type="password" id="password-input" placeholder="Create a password">
+                    <p id="password-error-message" class="error-message"></p>
+                </div>
+                
+                <button id="create-account-btn" class="auth-btn">Sign Up</button>
+                
+                <div class="auth-links">
+                    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+                </div>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button id="sign-up-with-google-btn" class="auth-btn google-btn">
+                    <img src="{{ url_for('static', filename='images/google-icon.png') }}" alt="Google">
+                    Sign up with Google
+                </button>
+                <p id="google-signin-error-message" class="error-message"></p>
+            </div>
+            
+
+        </main>
+    </div>
+
+    <script type="module" src="{{ url_for('static', filename='login-auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

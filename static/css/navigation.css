@@ -1,0 +1,200 @@
+/* Header & Navigation */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(18, 18, 18, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    color: var(--text-primary);
+    padding: 0.75rem var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.navbar-left, .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.25rem;
+    gap: var(--space-xs);
+}
+
+.navbar-item {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: var(--space-xs) var(--space-sm);
+    position: relative;
+    transition: all var(--transition-normal);
+}
+
+.navbar-item:hover {
+    color: var(--text-primary);
+}
+
+.navbar-item::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--accent-color);
+    transition: width var(--transition-normal);
+    opacity: 0.8;
+}
+
+.navbar-item:hover::after {
+    width: 100%;
+}
+
+.navbar-item.active {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.navbar-item.active::after {
+    width: 100%;
+    opacity: 1;
+}
+
+/* Logo styling */
+.logo-img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+}
+
+.logo-text {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.logo-text span {
+    color: var(--accent-color);
+}
+
+/* Mobile navigation */
+.hamburger, .closebtn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: var(--space-xs);
+}
+
+.closebtn {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: var(--z-fixed);
+}
+
+/* User avatar/profile */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.user-profile:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.user-status {
+    font-size: 0.75rem;
+    color: var(--accent-color);
+}
+
+/* Dropdown content */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    min-width: 180px;
+    background-color: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: var(--z-dropdown);
+    overflow: hidden;
+    margin-top: var(--space-md);
+    right: var(--space-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-item {
+    color: var(--text-secondary);
+    padding: var(--space-md);
+    text-decoration: none;
+    display: block;
+    font-size: 0.9rem;
+    transition: all var(--transition-normal);
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.05);
+    margin: 0;
+}
+
+.text-danger {
+    color: var(--error-color) !important;
+}

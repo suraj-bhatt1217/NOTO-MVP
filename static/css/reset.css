@@ -1,0 +1,93 @@
+/* Base Resets & Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    color: var(--text-primary);
+    background-color: var(--primary-bg);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s var(--transition-normal);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    margin-bottom: var(--space-lg);
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+h2 {
+    font-size: 2.75rem;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+p {
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    margin-bottom: var(--space-md);
+    line-height: 1.7;
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+a:hover {
+    color: var(--accent-light);
+}
+
+strong, b {
+    font-weight: 600;
+    color: var(--text-primary);
+}

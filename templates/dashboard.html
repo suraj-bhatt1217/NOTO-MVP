@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" >
+
+  <title>NOTO Dashboard</title>
+  </head>
+
+  <body class="dark-theme">
+    {% include 'navbar_private.html' %}
+
+    <main class="dashboard-container">
+      <div class="hero-section">
+        <div class="hero-content">
+          <h1>Transform YouTube Videos into Smart Notes</h1>
+          <p class="subtitle">Paste a YouTube URL and get intelligent notes in seconds</p>
+          
+          <div class="url-input-container">
+            <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=..." />
+            <button id="summarize-btn" class="cta-button pulse">Summarize</button>
+          </div>
+          
+          <div id="video-preview" class="hidden">
+            <div class="video-info">
+              <img id="video-thumbnail" src="" alt="Video thumbnail">
+              <div class="video-details">
+                <h3 id="video-title">Video Title</h3>
+                <p id="video-duration">Duration: <span>0</span> minutes</p>
+              </div>
+            </div>
+            <button id="confirm-summarize-btn" class="cta-button">Generate Summary</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-stats">
+        <div class="usage-card">
+          <h2>Your Usage</h2>
+          <div class="usage-meter">
+            <div class="usage-progress">
+              <div class="progress-bar" data-progress="{{ (plan_data.minutes_used / plan_data.minutes_limit) * 100 }}"></div>
+            </div>
+            <p>{{ plan_data.minutes_used }} / {{ plan_data.minutes_limit }} minutes used</p>
+          </div>
+          <div class="plan-info">
+            <p class="current-plan"><strong>Current Plan:</strong> {{ plans[plan_data.plan].name }}</p>
+            <p><strong>Next Billing:</strong> {{ plan_data.next_billing_date }}</p>
+            <a href="{{ url_for('pricing') }}" class="upgrade-link">Upgrade Plan</a>
+          </div>
+        </div>
+
+        <div class="recent-activity">
+          <h2>Recent Videos</h2>
+          {% if plan_data.recent_videos %}
+            <ul class="video-list">
+              {% for video in plan_data.recent_videos %}
+                <li>
+                  <a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank" class="video-item">
+                    <span class="video-title">{{ video.title }}</span>
+                    <span class="video-duration">{{ video.duration_minutes }} min</span>
+                    <span class="view-summary" data-video-id="{{ video.video_id }}">View Summary</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+            <a href="{{ url_for('my_videos') }}" class="view-all">View All Videos</a>
+          {% else %}
+            <p class="empty-state">No videos processed yet. Start by pasting a YouTube URL above.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Summary Modal -->
+      <div id="summary-modal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <div class="loading-spinner hidden" id="summary-loading">
+            <div class="spinner"></div>
+            <p>Generating your notes...</p>
+          </div>
+          <div id="summary-content">
+            <h2 id="summary-title">Video Title</h2>
+            <div id="summary-body" class="markdown-content"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    {% include 'footer.html' %}
+
+    <script src="{{ url_for('static', filename='login-auth.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}" type="module"></script>
+  </body>
+</html>

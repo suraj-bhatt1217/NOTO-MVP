@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" >
+
+  <title>My Videos - NOTO</title>
+  </head>
+
+  <body class="dark-theme">
+    {% include 'navbar_private.html' %}
+
+    <main class="videos-container">
+      <div class="page-header">
+        <h1>My Video Notes</h1>
+        <p class="subtitle">All your processed videos and summaries in one place</p>
+      </div>
+
+      <div class="video-grid">
+        {% if videos %}
+          {% for video in videos %}
+            <div class="video-card">
+              <div class="video-card-header">
+                <a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank" class="video-thumb-link">
+                  <img src="https://img.youtube.com/vi/{{ video.video_id }}/mqdefault.jpg" alt="{{ video.title }}" class="video-thumbnail">
+                </a>
+              </div>
+              <div class="video-card-body">
+                <h3 class="video-title">{{ video.title }}</h3>
+                <div class="video-meta">
+                  <span class="video-duration">{{ video.duration_minutes }} minutes</span>
+                  <span class="video-date">{{ video.processed_at.strftime('%b %d, %Y') if video.processed_at else 'Unknown date' }}</span>
+                </div>
+                <button class="view-summary-btn" data-video-id="{{ video.video_id }}">View Notes</button>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <p>You haven't processed any videos yet.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn-primary">Go to Dashboard</a>
+          </div>
+        {% endif %}
+      </div>
+    </main>
+
+    <!-- Summary Modal -->
+    <div id="summary-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="summary-content">
+          <h2 id="summary-title">Video Title</h2>
+          <div class="modal-actions">
+            <button id="download-notes-btn" class="btn-primary">Download Notes</button>
+          </div>
+          <div id="summary-body" class="markdown-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    {% include 'footer.html' %}
+
+    <script src="{{ url_for('static', filename='login-auth.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='my_videos.js') }}" type="module"></script>
+  </body>
+</html>

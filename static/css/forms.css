@@ -1,0 +1,175 @@
+/* Form Elements */
+.form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-input,
+textarea.form-input,
+select.form-input,
+#youtube-url {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    transition: all var(--transition-normal);
+    box-sizing: border-box;
+}
+
+textarea.form-input {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-input:focus, 
+#youtube-url:focus, 
+textarea.form-input:focus, 
+select.form-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+    border-color: var(--accent-color);
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.form-input::placeholder, 
+#youtube-url::placeholder, 
+textarea.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    font-style: italic;
+}
+
+/* Floating label effect */
+.input-floating {
+    position: relative;
+}
+
+.input-floating .form-input {
+    padding: 1.2rem 1rem 0.8rem;
+}
+
+.input-floating .form-label {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    background-color: transparent;
+    transition: all var(--transition-normal);
+    pointer-events: none;
+    padding: 0 0.25rem;
+    margin: 0;
+    z-index: 1;
+}
+
+.input-floating .form-input:focus + .form-label,
+.input-floating .form-input:not(:placeholder-shown) + .form-label {
+    top: 0.7rem;
+    transform: translateY(0);
+    font-size: 0.75rem;
+    color: var(--accent-color);
+}
+
+/* Input with icon */
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon .form-input {
+    padding-left: 3rem;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-color);
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+/* Input group */
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group .form-input {
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    flex: 1;
+}
+
+.input-group .input-group-append {
+    margin-left: -1px;
+}
+
+.input-group .input-group-append .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    height: 100%;
+}
+
+/* Custom checkbox */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    cursor: pointer;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkbox-custom {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    margin-right: var(--space-sm);
+    transition: all var(--transition-normal);
+}
+
+.checkbox-container:hover input ~ .checkbox-custom {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.checkbox-container input:checked ~ .checkbox-custom {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.checkbox-custom:after {
+    content: '';
+    position: absolute;
+    display: none;
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container input:checked ~ .checkbox-custom:after {
+    display: block;
+}

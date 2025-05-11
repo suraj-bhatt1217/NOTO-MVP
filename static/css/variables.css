@@ -1,0 +1,65 @@
+/* CSS Variables - Theme Colors & Global Settings */
+:root {
+    /* Luxury theme colors */
+    --primary-bg: #121212;
+    --secondary-bg: #1a1a1a;
+    --tertiary-bg: #222222;
+    --accent-color: #d4af37;
+    --accent-dark: #aa8c2c;
+    --accent-light: #f0e6c9;
+    --accent-transparent: rgba(212, 175, 55, 0.15);
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-tertiary: #b0b0b0;
+    --success-color: #27ae60;
+    --error-color: #e74c3c;
+    --warning-color: #f39c12;
+    --info-color: #3498db;
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --shadow-gold-sm: 0 2px 8px rgba(212, 175, 55, 0.15);
+    --shadow-gold-md: 0 5px 15px rgba(212, 175, 55, 0.2);
+    
+    /* Fonts */
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 9999px;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Z-index layers */
+    --z-base: 1;
+    --z-elevated: 10;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+    
+    /* Sizing */
+    --header-height: 80px;
+    --sidebar-width: 280px;
+    --container-max: 1400px;
+    --container-content: 1140px;
+}

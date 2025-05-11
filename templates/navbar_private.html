@@ -1,0 +1,61 @@
+<div class="navbar">
+    <div class="navbar-left">
+        <a href="{{ url_for('dashboard') }}" class="navbar-logo">
+            <img class="logo-img" src="{{ url_for('static', filename='images/default_logo.png') }}" alt="NOTO Logo" onerror="this.src='{{ url_for('static', filename='images/fallback_logo.png') }}'; this.onerror=null;" />
+            <span class="logo-text"><span>NOTO</span></span>
+        </a>
+    </div>
+    
+    <button class="hamburger" aria-label="Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
+    
+    <div class="navbar-right" id="navbarRight">
+        <button class="closebtn" aria-label="Close menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        
+        <a href="{{ url_for('dashboard') }}" class="navbar-item">Dashboard</a>
+        <a href="{{ url_for('my_videos') }}" class="navbar-item">My Videos</a>
+        <a href="{{ url_for('pricing') }}" class="navbar-item">Pricing</a>
+        
+        <div class="user-profile" id="user-profile-dropdown">
+            <div class="user-avatar">
+                {{ session['user']['email'][0]|upper }}
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ session['user'].get('displayName', session['user']['email'].split('@')[0]) }}</span>
+                <span class="user-status">{{ plans[plan_data.plan].name }}</span>
+            </div>
+            <div class="dropdown-content">
+                <a href="#" class="dropdown-item">Profile</a>
+                <a href="#" class="dropdown-item">Settings</a>
+                <div class="dropdown-divider"></div>
+                <a href="{{ url_for('logout') }}" id="sign-out-btn" class="dropdown-item text-danger">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle dropdown for user profile
+    document.getElementById('user-profile-dropdown').addEventListener('click', function() {
+        this.querySelector('.dropdown-content').classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.closest('.user-profile')) {
+            document.querySelectorAll('.dropdown-content').forEach(function(el) {
+                el.classList.remove('show');
+            });
+        }
+    });
+</script>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+  <title>Terms of Service - NOTO</title>
+
+
+  </head>
+
+  <body>
+
+    {% include 'navbar_public.html' %}
+
+    <main class="legal-container">
+      <div class="legal-content">
+        <h1 class="legal-title">Terms of Service</h1>
+        <p class="legal-date">Last Updated: May 10, 2025</p>
+
+        <div class="legal-section">
+          <h2>1. Acceptance of Terms</h2>
+          <p>Welcome to NOTO ("we," "our," or "us"). By accessing or using our YouTube video summarization service, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>2. Description of Service</h2>
+          <p>NOTO provides an AI-powered tool that creates summaries and notes from YouTube videos. Our service allows users to:</p>
+          <ul>
+            <li>Generate text summaries of YouTube video content</li>
+            <li>Save and organize video summaries</li>
+            <li>Download notes in various formats</li>
+          </ul>
+          <p>We reserve the right to modify, suspend, or discontinue any part of our service at any time.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>3. User Accounts</h2>
+          <p>To access certain features of our service, you must create an account. You are responsible for:</p>
+          <ul>
+            <li>Maintaining the confidentiality of your account information</li>
+            <li>All activities that occur under your account</li>
+            <li>Notifying us immediately of any unauthorized use</li>
+          </ul>
+          <p>We reserve the right to terminate accounts that violate our terms or policies.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>4. Subscription and Billing</h2>
+          <p>NOTO offers different subscription plans with varying features and usage limits:</p>
+          <ul>
+            <li>Free plans have limited features and usage restrictions</li>
+            <li>Premium plans require payment and provide enhanced capabilities</li>
+            <li>Subscriptions automatically renew unless canceled before the renewal date</li>
+          </ul>
+          <p>Refunds may be issued at our discretion according to our refund policy.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>5. Content Usage Rights</h2>
+          <p>Our service processes content from YouTube videos. By using our service:</p>
+          <ul>
+            <li>You confirm you have the right to access and summarize the videos you submit</li>
+            <li>You understand we do not claim ownership of YouTube's content</li>
+            <li>You agree to use the summarized content in compliance with applicable copyright laws</li>
+          </ul>
+          <p>We reserve the right to remove any content that violates these terms.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>6. Limitations and Disclaimers</h2>
+          <p>While we strive for accuracy, our AI-generated summaries:</p>
+          <ul>
+            <li>May not capture all information from videos</li>
+            <li>Should not be relied upon for critical or sensitive decisions</li>
+            <li>Are provided "as is" without warranties of any kind</li>
+          </ul>
+          <p>We are not responsible for any actions taken based on the content of our summaries.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>7. Limitation of Liability</h2>
+          <p>In no event shall NOTO, its affiliates, or its licensors be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>8. Modifications to Terms</h2>
+          <p>We may modify these terms at any time. Continued use of our service after such changes constitutes acceptance of the new terms. We will notify users of significant changes via email or through our website.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>9. Governing Law</h2>
+          <p>These terms shall be governed by the laws of India, without regard to its conflict of law principles.</p>
+        </div>
+
+        <div class="legal-section">
+          <h2>10. Contact Us</h2>
+          <p>If you have any questions about these Terms of Service, please contact us at:</p>
+          <p><a href="mailto:support@noto.ai">support@noto.ai</a></p>
+        </div>
+      </div>
+    </main>
+
+    {% include 'footer.html' %}
+
+
+
+    <script src="{{ url_for('static', filename='scripts.js') }}" type="module"></script>
+  </body>
+
+</html>

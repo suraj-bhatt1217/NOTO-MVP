@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" >
+
+  <title>Pricing - NOTO</title>
+  </head>
+
+  <body class="dark-theme">
+    {% if is_authenticated %}
+      {% include 'navbar_private.html' %}
+    {% else %}
+      {% include 'navbar_public.html' %}
+    {% endif %}
+
+    <main class="pricing-container">
+      <div class="page-header">
+        <h1>Choose Your Plan</h1>
+        <p class="subtitle">Get premium notes with our advanced YouTube video summarization</p>
+      </div>
+
+      <div class="pricing-grid">
+        {% for plan_id, plan in plans.items() %}
+        <div class="pricing-card {% if plan_id == current_plan %}active{% endif %}">
+          <div class="pricing-card-header">
+            <h2>{{ plan.name }}</h2>
+            <div class="pricing-amount">
+              <span class="currency">₹</span>
+              <span class="amount">{{ plan.price // 100 }}</span>
+              {% if plan.price > 0 %}
+              <span class="billing-cycle">/month</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="pricing-card-body">
+            <ul class="pricing-features">
+              {% for feature in plan.features %}
+              <li>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                {{ feature }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="pricing-card-footer">
+            {% if is_authenticated %}
+              {% if plan_id == current_plan %}
+              <button class="current-plan-btn" disabled>Current Plan</button>
+              {% else %}
+              <button class="subscribe-btn" data-plan-id="{{ plan_id }}">Subscribe</button>
+              {% endif %}
+            {% else %}
+              <a href="{{ url_for('login') }}" class="btn-primary">Login to Subscribe</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+
+    <div id="payment-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="payment-plan-name">Subscribe to Pro Plan</h2>
+        <div class="payment-details">
+          <p>Amount: <span id="payment-amount">₹299</span></p>
+          <p>Billing Cycle: Monthly</p>
+          <div id="razorpay-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    {% include 'footer.html' %}
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="{{ url_for('static', filename='login-auth.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='pricing.js') }}" type="module"></script>
+  </body>
+</html>

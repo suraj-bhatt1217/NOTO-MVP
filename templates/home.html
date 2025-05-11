@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" >
+
+  <title>NOTO - Transform YouTube Videos into Elegant Notes</title>
+  </head>
+
+  <body>
+    <div class="container">
+      {% include 'navbar_public.html' %}
+
+      <main class="landing-page">
+        <section class="hero-banner">
+          <div class="hero-content">
+            <h1>From YouTube to Notes — In One Click</h1>
+            <p class="subtitle">Transform lengthy videos into concise, elegant notes with our premium AI service</p>
+            <div class="cta-buttons">
+              <a href="{{ url_for('login') }}" class="btn-primary">Get Started</a>
+              <a href="{{ url_for('signup') }}" class="btn-secondary">Create Account</a>
+            </div>
+          </div>
+          <div class="hero-image">
+            <img src="{{ url_for('static', filename='images/hero-illustration.svg') }}" alt="YouTube to Notes illustration" onerror="this.style.display='none'">
+          </div>
+        </section>
+
+        <section class="features-section">
+          <h2>Premium Experience</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">✓</div>
+              <h3>Intelligent Summarization</h3>
+              <p>Our AI extracts key insights and creates structured notes from any YouTube video</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">✓</div>
+              <h3>Save Hours of Time</h3>
+              <p>Consume content faster with our concise
+
