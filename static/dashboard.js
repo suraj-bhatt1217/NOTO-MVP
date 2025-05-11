@@ -123,7 +123,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate summary');
+                
+                // Check if this is a plan limit error and show a more detailed message
+                if (errorData.error === 'Plan limit would be exceeded' && errorData.message) {
+                    throw new Error(errorData.message);
+                } else {
+                    throw new Error(errorData.error || 'Failed to generate summary');
+                }
             }
             
             const data = await response.json();

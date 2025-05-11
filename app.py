@@ -418,11 +418,32 @@ def summarize_video():
         title = video_info["snippet"]["title"]
         channel = video_info["snippet"]["channelTitle"]
 
-        # Generate summary
+        # Check if the video duration would exceed the user's remaining minutes
         user_id = session["user"]["uid"]
         user_ref = db.collection("users").document(user_id)
         user_doc = user_ref.get().to_dict()
         plan_type = user_doc.get("subscription", {}).get("plan", "free")
+        
+        # Get current usage and plan limit
+        usage_minutes = user_doc.get("usage", {}).get("minutes_used_this_month", 0)
+        plan_limit = SUBSCRIPTION_PLANS[plan_type]["minutes_limit"]
+        remaining_minutes = plan_limit - usage_minutes
+        
+        # Check if this video would exceed the remaining minutes
+        if duration_minutes > remaining_minutes:
+            return (
+                jsonify(
+                    {
+                        "error": "Plan limit would be exceeded",
+                        "minutes_used": usage_minutes,
+                        "video_duration": round(duration_minutes, 2),
+                        "remaining_minutes": round(remaining_minutes, 2),
+                        "plan_limit": plan_limit,
+                        "message": f"This video is {round(duration_minutes, 2)} minutes long, but you only have {round(remaining_minutes, 2)} minutes remaining in your plan. Please upgrade your plan to process longer videos.",
+                    }
+                ),
+                403,
+            )
 
         summary = generate_summary(transcript, plan_type, title, channel)
 
