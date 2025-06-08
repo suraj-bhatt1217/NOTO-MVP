@@ -8,9 +8,9 @@ NotoAI is a powerful web application that allows users to convert YouTube videos
 - **AI-Powered Summarization**: Generate structured notes with key points using OpenAI's GPT models
 - **Tiered Subscription Plans**: 
   - Free: 30 minutes/month with basic summaries
-  - Pro (₹299/month): 300 minutes/month with premium structured notes
-  - Elite (₹799/month): 1000 minutes/month with premium notes and priority processing
-- **Razorpay Payment Integration**: Secure subscription management with Indian payment gateway
+  - Pro ($9.99/month): 300 minutes/month with premium structured notes
+  - Elite ($29.99/month): 1000 minutes/month with premium notes and priority processing
+- **PayPal Payment Integration**: Secure subscription management with a global payment gateway
 - **Usage Tracking**: Monitor your monthly usage and plan limits
 - **Firebase Authentication**: Secure login with email or Google account
 - **Firestore Database**: Cloud storage for user data, summaries, and usage metrics
@@ -24,7 +24,7 @@ Before you begin, ensure you have the following installed:
 - A Firebase account
 - OpenAI API key
 - YouTube Data API key
-- Razorpay account (for payment integration)
+- PayPal account (for payment integration)
 
 ## Getting Started
 
@@ -69,14 +69,15 @@ OPENAI_API_KEY=your_openai_api_key_here
 # YouTube API Key for video details
 YOUTUBE_API_KEY=your_youtube_api_key_here
 
-# Razorpay Payment Integration
-RAZORPAY_KEY_ID=your_razorpay_key_id_here
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret_here
+# PayPal Payment Integration
+PAYPAL_CLIENT_ID=your_paypal_client_id_here
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
+PAYPAL_MODE=sandbox # or "live"
 ```
 
 - To get an OpenAI API key, sign up at https://platform.openai.com/
 - To get a YouTube API key, go to Google Cloud Console, create a project, enable the YouTube Data API v3, and create an API key
-- For Razorpay integration, sign up at https://razorpay.com/ and get your API keys from the dashboard
+- For PayPal integration, sign up at https://developer.paypal.com/ and create a REST API app to get your Client ID and Secret.
 
 ### 4. Firestore Database Structure
 

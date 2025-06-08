@@ -5,7 +5,7 @@ python-dotenv
 requests
 youtube-transcript-api
 openai
-razorpay
+paypalrestsdk
 flask-cors
 python-dateutil
 setuptools

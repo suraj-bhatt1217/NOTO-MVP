@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const closeModal = document.querySelector('.close-modal');
     const paymentPlanName = document.getElementById('payment-plan-name');
     const paymentAmount = document.getElementById('payment-amount');
-    const razorpayContainer = document.getElementById('razorpay-container');
+    const paypalButtonContainer = document.getElementById('paypal-button-container'); // Updated for PayPal
     const toast = document.getElementById('toast');
     
     // Event listeners
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Functions
     async function handleSubscription(planId) {
+        console.log('[Pricing] handleSubscription called with planId:', planId);
         if (planId === 'free') {
             try {
                 const response = await fetch('/api/create-subscription', {
@@ -61,172 +62,162 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }, 2000);
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error subscribing to free plan:', error);
                 showToast(error.message, 'error');
             }
-            
             return;
         }
-        
-        // For paid plans, create an order and show payment modal
+
+        // For paid plans, show payment modal and render PayPal buttons
         try {
-            const response = await fetch('/api/create-subscription', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ plan_id: planId }),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create subscription');
-            }
-            
-            const data = await response.json();
-            
-            // Update modal content
-            paymentPlanName.textContent = `Subscribe to ${data.product_name}`;
-            
-            // Convert price to local currency for display but clearly show USD amount for payment
-            if (currencyConverter.initialized && currencyConverter.userCurrency !== 'USD') {
-                const convertedPrice = currencyConverter.convertPrice(data.amount);
-                
-                // Clear previous content in payment details
-                const paymentDetails = document.querySelector('.payment-details');
-                
-                // Create styled elements for price display
-                const priceDisplay = document.createElement('div');
-                priceDisplay.className = 'price-display';
-                priceDisplay.style.margin = '20px 0';
-                
-                // Local currency display (for reference)
-                const localPriceDiv = document.createElement('div');
-                localPriceDiv.className = 'local-price';
-                localPriceDiv.innerHTML = `<span style="font-size:0.9em; color:#666;">Price in your currency (for reference):</span><br>
-                    <span style="font-size:1.4em; font-weight:600;">${convertedPrice.symbol}${convertedPrice.price}</span> <span class="currency-badge" style="font-size:0.7em; padding:2px 5px; border-radius:3px; background-color:rgba(98,0,234,0.1); color:#6200EA;">${currencyConverter.userCurrency}</span>`;
-                priceDisplay.appendChild(localPriceDiv);
-                
-                // Divider
-                const divider = document.createElement('div');
-                divider.style.margin = '15px 0';
-                divider.style.borderBottom = '1px solid #eee';
-                priceDisplay.appendChild(divider);
-                
-                // USD amount (actual charge)
-                const usdPriceDiv = document.createElement('div');
-                usdPriceDiv.className = 'usd-price';
-                usdPriceDiv.innerHTML = `<span style="font-size:0.9em; font-weight:600; color:#333;">You will be charged:</span><br>
-                    <span style="font-size:1.6em; font-weight:700; color:#6200EA;">$${data.amount / 100} USD</span>`;
-                priceDisplay.appendChild(usdPriceDiv);
-                
-                // Important note
-                const paymentNote = document.createElement('p');
-                paymentNote.className = 'payment-note';
-                paymentNote.innerHTML = `<i>Note: Your card will be charged in USD. Your bank may apply their own exchange rate.</i>`;
-                paymentNote.style.fontSize = '0.8em';
-                paymentNote.style.color = '#666';
-                paymentNote.style.marginTop = '15px';
-                
-                // Replace payment amount display
-                paymentAmount.style.display = 'none';
-                paymentDetails.insertBefore(priceDisplay, paymentDetails.firstChild);
-                paymentDetails.appendChild(paymentNote);
+            // Clear any existing PayPal buttons
+            console.log('[Pricing] Handling paid plan. PayPal button container:', paypalButtonContainer);
+            if (paypalButtonContainer) {
+                paypalButtonContainer.innerHTML = '';
             } else {
-                paymentAmount.textContent = `$${data.amount / 100} USD`;
+                console.error('[Pricing] paypal-button-container not found!');
+                showToast('Internal error: PayPal container missing.', 'error');
+                return;
             }
             
-            // Show payment modal
-            paymentModal.style.display = 'block';
+            // Fetch plan details
+            const planDetailsResponse = await fetch(`/api/get-plan-details/${planId}`);
+            if (!planDetailsResponse.ok) {
+                console.error('[Pricing] Failed to fetch plan details:', planDetailsResponse.status, await planDetailsResponse.text());
+                throw new Error('Could not fetch plan details.');
+            }
+            console.log('[Pricing] Plan details fetched successfully.');
+            const planData = await planDetailsResponse.json();
+
+            paymentPlanName.textContent = `Subscribe to ${planData.name}`;
+            const priceInUSD = (planData.price / 100).toFixed(2);
             
-            // Create Razorpay button
-            const options = {
-                key: data.key_id,
-                amount: data.amount,
-                currency: data.currency,
-                name: 'NotoAI',
-                description: data.description,
-                order_id: data.order_id,
-                handler: function(response) {
-                    verifyPayment(response, planId);
-                },
-                prefill: {
-                    name: data.user_info.name,
-                    email: data.user_info.email,
-                    contact: data.user_info.contact
-                },
-                theme: {
-                    color: '#6200EA'
+            // Show the price in local currency if available
+            if (currencyConverter.initialized && currencyConverter.userCurrency !== 'USD') {
+                const convertedPrice = currencyConverter.convertPrice(planData.price);
+                let priceDisplayP = document.querySelector('.dynamic-price-display');
+                if (!priceDisplayP) {
+                    priceDisplayP = document.createElement('p');
+                    priceDisplayP.className = 'dynamic-price-display';
+                    // Insert after the h2 (paymentPlanName) and before paypal-button-container
+                    paypalButtonContainer.parentNode.insertBefore(priceDisplayP, paypalButtonContainer);
                 }
-            };
-            
-            const rzp = new Razorpay(options);
-            
-            // Clear previous button
-            razorpayContainer.innerHTML = '';
-            
-            // Create button
-            const payButton = document.createElement('button');
-            payButton.textContent = 'Pay Now';
-            payButton.className = 'razorpay-btn';
-            payButton.addEventListener('click', function() {
-                rzp.open();
-                paymentModal.style.display = 'none';
-            });
-            
-            razorpayContainer.appendChild(payButton);
-            
-        } catch (error) {
-            console.error('Error:', error);
-            showToast(error.message, 'error');
-        }
-    }
-    
-    async function verifyPayment(response, planId) {
-        try {
-            const verifyData = {
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                plan_id: planId
-            };
-            
-            const verifyResponse = await fetch('/api/verify-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(verifyData),
-            });
-            
-            if (!verifyResponse.ok) {
-                const errorData = await verifyResponse.json();
-                throw new Error(errorData.error || 'Payment verification failed');
+                priceDisplayP.innerHTML = `Amount: <span style="font-weight:bold;">${convertedPrice.symbol}${convertedPrice.price}</span> (${currencyConverter.userCurrency})<br><small>(Approx. USD ${priceInUSD} - Payment processed in USD)</small>`;
+            } else {
+                let priceDisplayP = document.querySelector('.dynamic-price-display');
+                if (!priceDisplayP) {
+                    priceDisplayP = document.createElement('p');
+                    priceDisplayP.className = 'dynamic-price-display';
+                    paypalButtonContainer.parentNode.insertBefore(priceDisplayP, paypalButtonContainer);
+                }
+                priceDisplayP.innerHTML = `Amount: <span style="font-weight:bold;">$${priceInUSD}</span> USD`;
             }
             
-            const data = await verifyResponse.json();
-            showToast(data.message, 'success');
+            // Show the modal
+            console.log('[Pricing] Payment modal element:', paymentModal);
+            if (paymentModal) {
+                paymentModal.style.display = 'block';
+                console.log('[Pricing] Payment modal display set to block.');
+            } else {
+                console.error('[Pricing] payment-modal not found!');
+                showToast('Internal error: Payment modal missing.', 'error');
+                return;
+            }
             
-            // Reload page after successful payment
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-            
+            // Initialize PayPal button
+            console.log('[Pricing] Checking for window.paypal:', window.paypal);
+            if (window.paypal) {
+                console.log('[Pricing] Calling renderPayPalButton.');
+                renderPayPalButton(planId, planData);
+            } else {
+                console.error('PayPal SDK not loaded. Please refresh.');
+                showToast('Error loading PayPal. Please refresh the page and try again.', 'error');
+                console.log('[Pricing] PayPal SDK not loaded, toast shown.');
+            }
         } catch (error) {
-            console.error('Error:', error);
-            showToast(error.message, 'error');
+            console.error('Error in handleSubscription (paid plan):', error);
+            showToast(error.message || 'Could not initiate subscription. Please try again.', 'error');
+            paymentModal.style.display = 'none';
         }
     }
     
+    function renderPayPalButton(planId, planData) {
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                // Set up the transaction
+                return fetch('/api/create-subscription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        plan_id: planId
+                    })
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(orderData) {
+                    if (!orderData.approval_url) {
+                        throw new Error('No approval URL received from server');
+                    }
+                    return orderData.approval_url.split('token=')[1]; // Return the order ID
+                });
+            },
+            onApprove: function(data, actions) {
+                // This function captures the funds from the transaction
+                return fetch(`/api/verify-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_id: data.orderID,
+                        plan_id: planId
+                    })
+                })
+                .then(function(response) {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error || 'Payment verification failed'); });
+                    }
+                    return response.json();
+                })
+                .then(function(details) {
+                    // Show a success message to the buyer
+                    showToast('Payment successful! Your subscription has been activated.', 'success');
+                    
+                    // Close the payment modal
+                    paymentModal.style.display = 'none';
+                    
+                    // Redirect to dashboard or reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 2000);
+                })
+                .catch(function(err) {
+                    console.error('Payment verification error:', err);
+                    showToast(err.message || 'Error processing your payment. Please try again.', 'error');
+                });
+            },
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                showToast('An error occurred with PayPal. Please try again.', 'error');
+            },
+            onCancel: function(data) {
+                // Show a cancel page, or return to cart
+                showToast('Payment was cancelled.', 'error');
+            }
+        }).render('#paypal-button-container');
+    }
+
     function showToast(message, type = 'success') {
         toast.textContent = message;
-        toast.className = 'toast';
-        toast.classList.add(type);
-        toast.classList.add('show');
+        toast.className = 'toast show' + (type === 'error' ? ' error' : '');
         
+        // Hide toast after 5 seconds
         setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
+            toast.className = toast.className.replace(' show', '');
+        }, 5000);
     }
     
     /**
@@ -286,6 +277,21 @@ document.addEventListener('DOMContentLoaded', async function() {
             const billingCycle = element.querySelector('.billing-cycle');
             if (billingCycle) {
                 billingCycle.insertAdjacentElement('afterend', currencyBadge);
+
+                // Add disclaimer about USD processing
+                let disclaimer = element.querySelector('.usd-disclaimer');
+                if (!disclaimer) {
+                    disclaimer = document.createElement('small');
+                    disclaimer.className = 'usd-disclaimer';
+                    disclaimer.style.display = 'block';
+                    disclaimer.style.fontSize = '0.8em';
+                    disclaimer.style.color = '#666';
+                    disclaimer.style.marginTop = '5px';
+                    // Insert after the pricing-amount's parent or a suitable location
+                    element.parentNode.appendChild(disclaimer); 
+                }
+                const priceInUSD = (originalPrice / 100).toFixed(2);
+                disclaimer.innerHTML = `(Approx. USD ${priceInUSD} - Payment processed in USD)`;
             }
         });
         

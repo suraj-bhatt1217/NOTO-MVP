@@ -23,10 +23,8 @@ from youtube_transcript_api import (
     TranscriptsDisabled,
 )
 import openai
-import razorpay
+import paypalrestsdk
 import json
-import hmac
-import hashlib
 import requests
 from flask_cors import CORS
 from dateutil.relativedelta import relativedelta
@@ -37,6 +35,15 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 app.secret_key = os.getenv("SECRET_KEY")
+
+# Debug route to check environment variables
+@app.route('/debug/env')
+def debug_env():
+    return jsonify({
+        'PAYPAL_CLIENT_ID': 'SET' if os.getenv('PAYPAL_CLIENT_ID') else 'NOT SET',
+        'PAYPAL_CLIENT_SECRET': 'SET' if os.getenv('PAYPAL_CLIENT_SECRET') else 'NOT SET',
+        'PAYPAL_MODE': os.getenv('PAYPAL_MODE', 'not set')
+    })
 
 # Configure session cookie settings
 app.config["SESSION_COOKIE_SECURE"] = True  # Ensure cookies are sent over HTTPS
@@ -50,10 +57,21 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Can be 'Strict', 'Lax', or 'Non
 # API Keys and Configuration
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Razorpay Configuration
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+# PayPal Configuration
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "YOUR_PAYPAL_CLIENT_ID_PLACEHOLDER")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "YOUR_PAYPAL_CLIENT_SECRET_PLACEHOLDER")
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")  # "sandbox" or "live"
+
+print("Initializing PayPal SDK with the following settings:")
+print(f"Mode: {PAYPAL_MODE}")
+print(f"Client ID: {'Set' if PAYPAL_CLIENT_ID and PAYPAL_CLIENT_ID != 'YOUR_PAYPAL_CLIENT_ID_PLACEHOLDER' else 'NOT SET or using placeholder'}")
+print(f"Client Secret: {'Set' if PAYPAL_CLIENT_SECRET and PAYPAL_CLIENT_SECRET != 'YOUR_PAYPAL_CLIENT_SECRET_PLACEHOLDER' else 'NOT SET or using placeholder'}")
+
+paypalrestsdk.configure({
+    "mode": PAYPAL_MODE,
+    "client_id": PAYPAL_CLIENT_ID,
+    "client_secret": PAYPAL_CLIENT_SECRET
+})
 
 # Firebase Admin SDK setup
 firebase_credentials = {
@@ -86,7 +104,7 @@ SUBSCRIPTION_PLANS = {
     "pro": {
         "name": "Pro Plan",
         "minutes_limit": 100,  # 100 minutes per month
-        "price": 1499,  # $14.99
+        "price": 999,  # $9.99
         "currency": "USD",
         "features": ["Premium Summaries", "100 min/month", "Unlimited Videos"],
     },
@@ -377,6 +395,8 @@ def pricing():
         current_plan=current_plan,
         plan_data=plan_data,
         is_authenticated=is_authenticated,
+        paypal_client_id=os.getenv("PAYPAL_CLIENT_ID"),
+        paypal_mode=os.getenv("PAYPAL_MODE", "sandbox")
     )
 
 
@@ -578,88 +598,114 @@ def create_subscription():
         return jsonify({"error": "Invalid plan selected"}), 400
 
     if plan_id == "free":
-        # Handle free plan subscription
         user_id = session["user"]["uid"]
         update_user_subscription(user_id, "free", None)
         return jsonify({"success": True, "message": "Subscribed to Free plan"})
 
     plan_data = SUBSCRIPTION_PLANS[plan_id]
-    user_id = session["user"]["uid"]
-    user_email = session["user"].get("email", "customer@example.com")
+    # user_id = session["user"]["uid"] # Not directly used here for PayPal payment creation
+    # user_email = session["user"].get("email", "customer@example.com") # Not directly used here
 
     try:
-        # Create an order
-        order_amount = plan_data["price"]  # amount in paise
-        order_currency = plan_data["currency"]
-        order_receipt = f"order_rcptid_{secrets.token_hex(6)}"
-        notes = {"user_id": user_id, "plan_id": plan_id}
-
-        order = razorpay_client.order.create(
-            {
-                "amount": order_amount,
-                "currency": order_currency,
-                "receipt": order_receipt,
-                "notes": notes,
-            }
-        )
-
-        return jsonify(
-            {
-                "order_id": order["id"],
-                "amount": order_amount,
-                "currency": order_currency,
-                "key_id": RAZORPAY_KEY_ID,
-                "product_name": plan_data["name"],
-                "description": f"Subscription to {plan_data['name']}",
-                "user_info": {
-                    "name": session["user"].get("name", "Customer"),
-                    "email": user_email,
-                    "contact": session["user"].get("phoneNumber", ""),
+        payment = paypalrestsdk.Payment({
+            "intent": "sale",
+            "payer": {
+                "payment_method": "paypal"
+            },
+            "redirect_urls": {
+                "return_url": url_for('pricing', _external=True) + f"?paypal_status=success&plan_id={plan_id}",
+                "cancel_url": url_for('pricing', _external=True) + "?paypal_status=cancelled"
+            },
+            "transactions": [{
+                "item_list": {
+                    "items": [{
+                        "name": plan_data["name"],
+                        "sku": plan_id,
+                        "price": "{:.2f}".format(plan_data["price"] / 100.0),
+                        "currency": plan_data["currency"],
+                        "quantity": 1
+                    }]
                 },
-            }
-        )
+                "amount": {
+                    "total": "{:.2f}".format(plan_data["price"] / 100.0),
+                    "currency": plan_data["currency"]
+                },
+                "description": f"Subscription to {plan_data['name']}"
+            }]
+        })
+
+        if payment.create():
+            approval_url = next((link.href for link in payment.links if link.rel == "approval_url"), None)
+            if approval_url:
+                return jsonify({"approval_url": approval_url, "payment_id": payment.id})
+            else:
+                return jsonify({"error": "Could not get PayPal approval URL"}), 500
+        else:
+            print(f"PayPal Payment Creation Error: {payment.error}")
+            error_details = payment.error.get('details', []) if payment.error else []
+            error_message = payment.error.get('message', 'Unknown PayPal error') if payment.error else 'Unknown PayPal error'
+            if error_details:
+                error_message += " - " + ", ".join([d.get('issue', '') for d in error_details])
+            return jsonify({"error": f"PayPal payment creation failed: {error_message}"}), 500
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Exception during PayPal payment creation: {str(e)}")
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
 @app.route("/api/verify-payment", methods=["POST"])
 @auth_required
 def verify_payment():
     data = request.json
-    razorpay_payment_id = data.get("razorpay_payment_id")
-    razorpay_order_id = data.get("razorpay_order_id")
-    razorpay_signature = data.get("razorpay_signature")
+    payment_id = data.get("payment_id")
+    payer_id = data.get("payer_id")
     plan_id = data.get("plan_id")
 
-    if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature, plan_id]):
-        return jsonify({"error": "Missing payment verification details"}), 400
+    if not all([payment_id, payer_id, plan_id]):
+        return jsonify({"error": "Missing PayPal payment verification details"}), 400
+
+    if plan_id not in SUBSCRIPTION_PLANS:
+        return jsonify({"error": "Invalid plan ID for verification"}), 400
 
     try:
-        # Verify the payment signature
-        params_dict = {
-            "razorpay_order_id": razorpay_order_id,
-            "razorpay_payment_id": razorpay_payment_id,
-            "razorpay_signature": razorpay_signature,
-        }
-        razorpay_client.utility.verify_payment_signature(params_dict)
+        payment = paypalrestsdk.Payment.find(payment_id)
 
-        # Update the user's subscription
-        user_id = session["user"]["uid"]
-        update_user_subscription(user_id, plan_id, razorpay_payment_id)
-
-        return jsonify(
-            {
+        if payment.execute({"payer_id": payer_id}):
+            user_id = session["user"]["uid"]
+            update_user_subscription(user_id, plan_id, payment.id)
+            return jsonify({
                 "success": True,
-                "message": f'Payment verified. Subscribed to {SUBSCRIPTION_PLANS[plan_id]["name"]}.',
-            }
-        )
+                "message": f'Payment successful. Subscribed to {SUBSCRIPTION_PLANS[plan_id]["name"]}.',
+                "payment_id": payment.id
+            })
+        else:
+            print(f"PayPal Payment Execution Error: {payment.error}")
+            error_details = payment.error.get('details', []) if payment.error else []
+            error_message = payment.error.get('message', 'Unknown PayPal error during execution') if payment.error else 'Unknown PayPal error during execution'
+            if error_details:
+                error_message += " - " + ", ".join([d.get('issue', '') for d in error_details])
+            return jsonify({"error": f"PayPal payment execution failed: {error_message}"}), 400
 
-    except razorpay.errors.SignatureVerificationError:
-        return jsonify({"error": "Invalid payment signature"}), 400
-
+    except paypalrestsdk.exceptions.ResourceNotFound:
+        print(f"PayPal Payment Not Found: {payment_id}")
+        return jsonify({"error": "PayPal payment not found or already processed."}), 404
+    except paypalrestsdk.exceptions.ConnectionError as ce:
+        print(f"PayPal Connection Error: {str(ce)}")
+        return jsonify({"error": "Could not connect to PayPal. Please try again."}), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Exception during PayPal payment verification: {str(e)}")
+        # Consider logging the full traceback here for better debugging
+        # import traceback; traceback.print_exc()
+        return jsonify({"error": f"An unexpected error occurred during payment verification: {str(e)}"}), 500
+
+
+@app.route("/api/get-plan-details/<string:plan_id>", methods=["GET"])
+def get_plan_details(plan_id):
+    if plan_id in SUBSCRIPTION_PLANS:
+        plan_info = SUBSCRIPTION_PLANS[plan_id].copy()
+        return jsonify(plan_info)
+    else:
+        return jsonify({"error": "Plan not found"}), 404
 
 
 @app.route("/my-videos")
