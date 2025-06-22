@@ -1,3 +1,5 @@
 firebase-auth.json
 .env
 
+__pycache__
+*.pyc

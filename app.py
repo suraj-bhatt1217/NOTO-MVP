@@ -196,5 +196,8 @@ def debug_env():
         'FIREBASE_PROJECT_ID': 'SET' if app.config.get('FIREBASE_CONFIG', {}).get('project_id') else 'NOT SET'
     }
 
+# For Vercel deployment
+application = app
+
 if __name__ == "__main__":
     app.run(debug=True)
