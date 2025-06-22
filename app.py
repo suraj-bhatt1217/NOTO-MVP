@@ -55,24 +55,48 @@ def create_app(config_name=None):
 def configure_logging(app):
     """Configure application logging."""
     if not app.debug and not app.testing:
-        # Create logs directory if it doesn't exist
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
-        
-        # Configure file handler
-        file_handler = RotatingFileHandler(
-            'logs/noto_mvp.log', 
-            maxBytes=10240000, 
-            backupCount=10
-        )
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-        ))
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
-        
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('Noto MVP application startup')
+        # In serverless environments (like Vercel), use console logging instead of file logging
+        if os.environ.get('VERCEL') or os.environ.get('FLASK_ENV') == 'production':
+            # Configure console handler for production/serverless
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.INFO)
+            console_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+            ))
+            app.logger.addHandler(console_handler)
+            app.logger.setLevel(logging.INFO)
+            app.logger.info('Noto MVP application startup (serverless)')
+        else:
+            # Local development - use file logging
+            try:
+                # Create logs directory if it doesn't exist
+                if not os.path.exists('logs'):
+                    os.mkdir('logs')
+                
+                # Configure file handler
+                file_handler = RotatingFileHandler(
+                    'logs/noto_mvp.log', 
+                    maxBytes=10240000, 
+                    backupCount=10
+                )
+                file_handler.setFormatter(logging.Formatter(
+                    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+                ))
+                file_handler.setLevel(logging.INFO)
+                app.logger.addHandler(file_handler)
+                
+                app.logger.setLevel(logging.INFO)
+                app.logger.info('Noto MVP application startup (local)')
+            except OSError:
+                # Fallback to console logging if file logging fails
+                console_handler = logging.StreamHandler()
+                console_handler.setLevel(logging.INFO)
+                console_handler.setFormatter(logging.Formatter(
+                    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+                ))
+                app.logger.addHandler(console_handler)
+                app.logger.setLevel(logging.INFO)
+                app.logger.info('Noto MVP application startup (fallback to console)')
     
     # Configure console logging for development
     if app.debug:
