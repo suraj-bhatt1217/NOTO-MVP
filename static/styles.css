@@ -1480,3 +1480,45 @@ textarea.form-input {
     }
 }
 
+/* Processing info styles for async video processing */
+.processing-info {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.processing-info h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.processing-info p {
+    margin: 8px 0;
+    color: #666;
+}
+
+.processing-info small {
+    color: #999;
+    font-family: monospace;
+}
+
+#processing-status {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.processing-type-indicator {
+    margin-top: 10px;
+}
+
+.processing-type-indicator small {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+}

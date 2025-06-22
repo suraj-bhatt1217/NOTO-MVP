@@ -9,3 +9,4 @@ paypalrestsdk
 flask-cors
 python-dateutil
 setuptools
+flask-wtf

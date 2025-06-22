@@ -116,16 +116,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    video_url: youtubeUrlInput.value.trim() 
+                body: JSON.stringify({
+                    video_id: currentVideo.video_id,
+                    video_url: youtubeUrlInput.value.trim(),
+                    title: currentVideo.title,
+                    channel: currentVideo.channel,
+                    duration_minutes: currentVideo.duration_minutes
                 }),
             });
             
-            // Parse the response data once and store it
             const responseData = await response.json();
             
             if (!response.ok) {
-                // Use the already parsed response data for error handling
                 if (responseData.error === 'Plan limit would be exceeded' && responseData.message) {
                     throw new Error(responseData.message);
                 } else {
@@ -133,29 +135,127 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // If we reach here, responseData contains the successful response
-            
-            // Update summary modal content
-            summaryTitle.textContent = responseData.title;
-            summaryBody.innerHTML = markdownToHTML(responseData.summary);
-            
-            // Hide loading spinner and show content
-            summaryLoading.classList.add('hidden');
-            summaryContent.classList.remove('hidden');
-            
-            // Reset video preview
-            videoPreview.classList.add('hidden');
-            youtubeUrlInput.value = '';
-            currentVideo = null;
-            
-            // Update the usage stats (could fetch fresh data or use DOM manipulation)
-            updateUsageStats();
+            // Check if processing is asynchronous
+            if (responseData.processing) {
+                // Handle asynchronous processing
+                await handleAsyncProcessing(responseData);
+            } else {
+                // Handle immediate response (cached or fallback)
+                displaySummary(responseData);
+            }
             
         } catch (error) {
-            console.error('Error:', error);
-            closeModalHandler();
-            showToast(error.message, 'error');
+            console.error('Error generating summary:', error);
+            showToast(error.message || 'Failed to generate summary', 'error');
+            summaryModal.style.display = 'none';
         }
+    }
+    
+    async function handleAsyncProcessing(jobData) {
+        // Update loading message to show processing status
+        const loadingText = summaryLoading.querySelector('p');
+        if (loadingText) {
+            loadingText.textContent = 'Processing video transcript... This may take a few minutes.';
+        }
+        
+        // Add processing info
+        const processingInfo = document.createElement('div');
+        processingInfo.className = 'processing-info';
+        processingInfo.innerHTML = `
+            <h3>${jobData.title}</h3>
+            <p><strong>Channel:</strong> ${jobData.channel}</p>
+            <p><strong>Duration:</strong> ${jobData.duration_minutes} minutes</p>
+            <p><strong>Status:</strong> <span id="processing-status">Processing...</span></p>
+            <p><small>Job ID: ${jobData.job_id}</small></p>
+        `;
+        
+        summaryLoading.appendChild(processingInfo);
+        
+        // Start polling for job completion
+        const maxPollingTime = 10 * 60 * 1000; // 10 minutes
+        const pollingInterval = 5000; // 5 seconds
+        const startTime = Date.now();
+        
+        const pollJobStatus = async () => {
+            try {
+                const statusResponse = await fetch(`/api/check-job-status/${jobData.video_id}`);
+                const statusData = await statusResponse.json();
+                
+                if (!statusResponse.ok) {
+                    throw new Error(statusData.error || 'Failed to check job status');
+                }
+                
+                const statusElement = document.getElementById('processing-status');
+                
+                if (statusData.status === 'completed') {
+                    // Job completed, display the summary
+                    displaySummary(statusData);
+                    return;
+                } else if (statusData.status === 'failed' || statusData.status === 'error') {
+                    throw new Error('Video processing failed. Please try again.');
+                } else {
+                    // Update status display
+                    if (statusElement) {
+                        statusElement.textContent = `${statusData.status}...`;
+                    }
+                    
+                    // Continue polling if within time limit
+                    if (Date.now() - startTime < maxPollingTime) {
+                        setTimeout(pollJobStatus, pollingInterval);
+                    } else {
+                        throw new Error('Processing timeout. Please try again later.');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error polling job status:', error);
+                showToast(error.message || 'Failed to check processing status', 'error');
+                summaryModal.style.display = 'none';
+            }
+        };
+        
+        // Start polling
+        setTimeout(pollJobStatus, pollingInterval);
+    }
+    
+    function displaySummary(summaryData) {
+        // Update summary modal content
+        summaryTitle.textContent = summaryData.title;
+        summaryBody.innerHTML = markdownToHTML(summaryData.summary);
+        
+        // Add processing type indicator
+        const processingType = summaryData.processing_type || 'standard';
+        const typeIndicator = document.createElement('div');
+        typeIndicator.className = 'processing-type-indicator';
+        typeIndicator.innerHTML = `<small>Processing: ${processingType}</small>`;
+        summaryTitle.appendChild(typeIndicator);
+        
+        // Hide loading spinner and show content
+        summaryLoading.classList.add('hidden');
+        summaryContent.classList.remove('hidden');
+        
+        // Clean up processing info if it exists
+        const processingInfo = summaryLoading.querySelector('.processing-info');
+        if (processingInfo) {
+            processingInfo.remove();
+        }
+        
+        // Reset loading text
+        const loadingText = summaryLoading.querySelector('p');
+        if (loadingText) {
+            loadingText.textContent = 'Generating summary...';
+        }
+        
+        // Reset video preview
+        videoPreview.classList.add('hidden');
+        youtubeUrlInput.value = '';
+        currentVideo = null;
+        
+        // Show success message
+        const processingTypeMsg = processingType === 'cached' ? 'from cache' : 
+                                 processingType === 'fallback' ? 'using fallback method' : 
+                                 processingType === 'async' ? 'asynchronously' : '';
+        showToast(`Summary generated successfully ${processingTypeMsg}`, 'success');
     }
     
     async function fetchVideoSummary(videoId) {
