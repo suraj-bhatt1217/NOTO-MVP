@@ -220,22 +220,38 @@ function resetPassword() {
 
 
 function loginUser(user, idToken) {
-    fetch('/auth', {
+    fetch('/auth/authorize', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
         },
+        body: JSON.stringify({ idToken: idToken }),
         credentials: 'same-origin'  // Ensures cookies are sent with the request
-    }).then(response => {
-        if (response.ok) {
-            window.location.href = '/dashboard';
-        } else {
-            console.error('Failed to login');
-            // Handle errors here
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                console.error('Login failed:', err.error || 'Unknown error');
+                throw new Error(err.error || 'Login failed');
+            });
         }
-    }).catch(error => {
-        console.error('Error with Fetch operation: ', error);
+        return response.json();
+    })
+    .then(data => {
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        } else {
+            window.location.href = '/dashboard';
+        }
+    })
+    .catch(error => {
+        console.error('Error with login:', error.message);
+        // Optionally show error to user
+        const errorElement = document.getElementById('error-message');
+        if (errorElement) {
+            errorElement.textContent = error.message;
+            errorElement.style.display = 'block';
+        }
     });
 }
 

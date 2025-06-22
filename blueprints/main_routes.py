@@ -5,6 +5,7 @@ import logging
 from flask import Blueprint, render_template, request, session, jsonify
 from auth import auth_required, plan_checker, get_current_user_id
 from utils import validate_youtube_url, extract_video_id, get_video_transcript, generate_summary, parse_duration, update_user_usage
+from user_helpers import get_user_plan_data, format_plan_data, with_user_plan_data
 import requests
 from config import Config
 
@@ -38,42 +39,52 @@ def create_main_blueprint(db):
         """Render user dashboard."""
         try:
             user_id = get_current_user_id()
+            logger.info(f"Loading dashboard for user: {user_id}")
             
-            # Get user data
-            user_ref = db.collection("users").document(user_id)
-            user_doc = user_ref.get()
+            # Get recent videos
+            videos_ref = db.collection("users").document(user_id).collection("videos")
+            recent_videos = videos_ref.order_by("processed_at", direction="DESCENDING").limit(3).stream()
+            recent_videos_list = []
             
-            if user_doc.exists:
-                user_data = user_doc.to_dict()
-                plan_type = user_data.get("subscription", {}).get("plan", "free")
-                usage_minutes = user_data.get("usage", {}).get("minutes_used_this_month", 0)
-                plan_limit = Config.SUBSCRIPTION_PLANS[plan_type]["minutes_limit"]
-                
-                return render_template("dashboard.html", 
-                                     plan_type=plan_type,
-                                     usage_minutes=usage_minutes,
-                                     plan_limit=plan_limit)
-            else:
-                # Initialize new user
-                from utils import initialize_new_user
-                initialize_new_user(db, user_id)
-                return render_template("dashboard.html", 
-                                     plan_type="free",
-                                     usage_minutes=0,
-                                     plan_limit=30)
+            for video in recent_videos:
+                try:
+                    video_data = video.to_dict()
+                    recent_videos_list.append({
+                        "video_id": video_data.get("video_id", ""),
+                        "title": video_data.get("title", "Untitled"),
+                        "duration_minutes": video_data.get("duration_minutes", 0)
+                    })
+                except Exception as video_error:
+                    logger.error(f"Error processing video {video.id}: {str(video_error)}")
+                    continue
+            
+            # Add recent videos to the plan data that's already in the context
+            plan_data = getattr(session, 'plan_data', {})
+            plan_data["recent_videos"] = recent_videos_list
+            
+            return render_template("dashboard.html",
+                                 recent_videos=recent_videos_list)
                 
         except Exception as e:
-            logger.error(f"Error loading dashboard for user {user_id}: {str(e)}")
-            return render_template("dashboard.html", 
-                                 plan_type="free",
-                                 usage_minutes=0,
-                                 plan_limit=30)
+            logger.error(f"Error in dashboard route: {str(e)}", exc_info=True)
+            # Return a basic dashboard with error state
+            return render_template("dashboard.html")
 
     @main_bp.route("/pricing")
     @auth_required
     def pricing():
         """Render pricing page."""
-        return render_template("pricing.html", plans=Config.SUBSCRIPTION_PLANS)
+        try:
+            user_id = get_current_user_id()
+            logger.info(f"Loading pricing page for user: {user_id}")
+            
+            # The context processor will handle adding plan_data and plans to the template
+            return render_template("pricing.html")
+                                
+        except Exception as e:
+            logger.error(f"Error in pricing route: {str(e)}", exc_info=True)
+            # The context processor will handle default values if there's an error
+            return render_template("pricing.html")
 
     @main_bp.route("/my-videos")
     @auth_required
@@ -81,25 +92,38 @@ def create_main_blueprint(db):
         """Render user's video history."""
         try:
             user_id = get_current_user_id()
+            logger.info(f"Loading videos for user: {user_id}")
             
-            # Get user's videos
-            videos_ref = db.collection("users").document(user_id).collection("videos")
-            videos = videos_ref.order_by("processed_at", direction="DESCENDING").limit(20).stream()
-            
+            # Get user's videos with error handling for Firestore query
             video_list = []
-            for video in videos:
-                video_data = video.to_dict()
-                video_list.append({
-                    "video_id": video_data.get("video_id"),
-                    "title": video_data.get("title"),
-                    "duration_minutes": video_data.get("duration_minutes"),
-                    "processed_at": video_data.get("processed_at")
-                })
+            try:
+                videos_ref = db.collection("users").document(user_id).collection("videos")
+                videos = videos_ref.order_by("processed_at", direction="DESCENDING").limit(20).stream()
+                
+                for video in videos:
+                    try:
+                        video_data = video.to_dict()
+                        video_list.append({
+                            "video_id": video_data.get("video_id", ""),
+                            "title": video_data.get("title", "Untitled"),
+                            "duration_minutes": video_data.get("duration_minutes", 0),
+                            "processed_at": video_data.get("processed_at")
+                        })
+                    except Exception as video_error:
+                        logger.error(f"Error processing video {video.id}: {str(video_error)}")
+                        continue
+                
+                logger.info(f"Successfully loaded {len(video_list)} videos for user {user_id}")
+                
+            except Exception as query_error:
+                logger.error(f"Error querying videos for user {user_id}: {str(query_error)}")
+                # Continue with empty video list
             
             return render_template("my_videos.html", videos=video_list)
-            
+                                
         except Exception as e:
-            logger.error(f"Error loading videos for user {user_id}: {str(e)}")
+            logger.error(f"Unexpected error in my_videos route: {str(e)}", exc_info=True)
+            # Return empty state
             return render_template("my_videos.html", videos=[])
 
     @main_bp.route("/api/extract-video-info", methods=["POST"])

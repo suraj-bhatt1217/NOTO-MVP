@@ -157,27 +157,57 @@ def initialize_paypal(app):
         raise
 
 def register_blueprints(app, db, csrf):
-    """Register application blueprints."""
-    
-    # Register authentication blueprint
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    
-    # Register main routes blueprint
+    """Register application blueprints and context processors."""
+    # Main routes (no CSRF protection needed for these)
     main_bp = create_main_blueprint(db)
     app.register_blueprint(main_bp)
     
-    # Register payment routes blueprint
-    payment_bp = create_payment_blueprint(db)
-    app.register_blueprint(payment_bp)
+    # Auth routes (no CSRF protection needed for these)
+    from auth import is_authenticated
+    app.jinja_env.globals.update(is_authenticated=is_authenticated)
     
-    # Register webhook routes blueprint
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    
+    # Payment routes (CSRF protection needed)
+    payment_bp = create_payment_blueprint(db)
+    csrf.exempt(payment_bp)  # Exempt from CSRF since we're using our own token validation
+    app.register_blueprint(payment_bp, url_prefix='/api')
+    
+    # Webhook routes (no CSRF protection needed for webhooks)
     webhook_bp = create_webhook_blueprint(db)
-    app.register_blueprint(webhook_bp)
+    app.register_blueprint(webhook_bp, url_prefix='/webhook')
     
     # Exempt certain routes from CSRF protection
     csrf.exempt(auth_bp)  # Firebase handles auth security
     
-    app.logger.info("Blueprints registered successfully")
+    # Add context processor for common template variables
+    @app.context_processor
+    def inject_template_vars():
+        """Inject common variables into all templates."""
+        from datetime import datetime
+        from config import Config
+        
+        context = {
+            'app_name': 'Noto',
+            'current_year': datetime.now().year,
+            'plans': Config.SUBSCRIPTION_PLANS,
+            'is_authenticated': is_authenticated()
+        }
+        
+        # Add user data if authenticated
+        if is_authenticated():
+            from flask import session
+            from user_helpers import get_user_plan_data, format_plan_data
+            
+            user_id = session.get('user', {}).get('uid')
+            if user_id:
+                user_plan_data = get_user_plan_data(db, user_id)
+                if user_plan_data:
+                    context['plan_data'] = format_plan_data(user_plan_data, Config.SUBSCRIPTION_PLANS)
+        
+        return context
+    
+    app.logger.info("Blueprints and context processor registered successfully")
 
 def register_error_handlers(app):
     """Register custom error handlers."""

@@ -142,6 +142,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     function renderPayPalButton(planId, planData) {
+        // Ensure planData is available
+        if (!planData) {
+            console.error('No plan data provided');
+            return;
+        }
         paypal.Buttons({
             createOrder: function(data, actions) {
                 // Set up the transaction

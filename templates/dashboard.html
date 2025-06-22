@@ -51,7 +51,7 @@
           <div class="plan-info">
             <p class="current-plan"><strong>Current Plan:</strong> {{ plans[plan_data.plan].name }}</p>
             <p><strong>Next Billing:</strong> {{ plan_data.next_billing_date }}</p>
-            <a href="{{ url_for('pricing') }}" class="upgrade-link">Upgrade Plan</a>
+            <a href="{{ url_for('main.pricing') }}" class="upgrade-link">Upgrade Plan</a>
           </div>
         </div>
 
@@ -69,7 +69,7 @@
                 </li>
               {% endfor %}
             </ul>
-            <a href="{{ url_for('my_videos') }}" class="view-all">View All Videos</a>
+            <a href="{{ url_for('main.my_videos') }}" class="view-all">View All Videos</a>
           {% else %}
             <p class="empty-state">No videos processed yet. Start by pasting a YouTube URL above.</p>
           {% endif %}

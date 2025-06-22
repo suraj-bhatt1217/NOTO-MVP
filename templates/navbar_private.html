@@ -1,7 +1,11 @@
 <div class="navbar">
     <div class="navbar-left">
-        <a href="{{ url_for('dashboard') }}" class="navbar-logo">
-            <img class="logo-img" src="{{ url_for('static', filename='images/default_logo.png') }}" alt="NotoAI Logo" onerror="this.src='{{ url_for('static', filename='images/fallback_logo.png') }}'; this.onerror=null;" />
+        <a href="{{ url_for('main.dashboard') }}" class="navbar-logo">
+            {% set fallback_logo = url_for('static', filename='images/fallback_logo.png') %}
+            <img class="logo-img" 
+                 src="{{ url_for('static', filename='images/default_logo.png') }}" 
+                 alt="NotoAI Logo" 
+                 onerror="this.src='{{ fallback_logo|safe }}'; this.onerror=null;" />
             <span class="logo-text"><span>NotoAI</span></span>
         </a>
     </div>
@@ -22,9 +26,9 @@
             </svg>
         </button>
         
-        <a href="{{ url_for('dashboard') }}" class="navbar-item">Dashboard</a>
-        <a href="{{ url_for('my_videos') }}" class="navbar-item">My Videos</a>
-        <a href="{{ url_for('pricing') }}" class="navbar-item">Pricing</a>
+        <a href="{{ url_for('main.dashboard') }}" class="navbar-item">Dashboard</a>
+        <a href="{{ url_for('main.my_videos') }}" class="navbar-item">My Videos</a>
+        <a href="{{ url_for('main.pricing') }}" class="navbar-item">Pricing</a>
         
         <div class="user-profile" id="user-profile-dropdown">
             <div class="user-avatar">
@@ -38,7 +42,7 @@
                 <a href="#" class="dropdown-item">Profile</a>
                 <a href="#" class="dropdown-item">Settings</a>
                 <div class="dropdown-divider"></div>
-                <a href="{{ url_for('logout') }}" id="sign-out-btn" class="dropdown-item text-danger">Logout</a>
+                <a href="{{ url_for('auth.logout') }}" id="sign-out-btn" class="dropdown-item text-danger">Logout</a>
             </div>
         </div>
     </div>
