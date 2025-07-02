@@ -105,13 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Show modal with loading spinner
-        summaryContent.classList.add('hidden');
-        summaryLoading.classList.remove('hidden');
-        summaryModal.style.display = 'block';
-        
         try {
-            const response = await fetch('/api/summarize-video', {
+            const response = await fetch('/summarize', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -121,39 +116,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }),
             });
             
-            // Parse the response data once and store it
             const responseData = await response.json();
             
             if (!response.ok) {
-                // Use the already parsed response data for error handling
-                if (responseData.error === 'Plan limit would be exceeded' && responseData.message) {
-                    throw new Error(responseData.message);
-                } else {
-                    throw new Error(responseData.error || 'Failed to generate summary');
-                }
+                throw new Error(responseData.error || 'Failed to start processing video');
             }
             
-            // If we reach here, responseData contains the successful response
+            // Show success message
+            showToast('Video is being processed. It will appear in your history when ready!', 'success');
             
-            // Update summary modal content
-            summaryTitle.textContent = responseData.title;
-            summaryBody.innerHTML = markdownToHTML(responseData.summary);
-            
-            // Hide loading spinner and show content
-            summaryLoading.classList.add('hidden');
-            summaryContent.classList.remove('hidden');
-            
-            // Reset video preview
+            // Reset the form
             videoPreview.classList.add('hidden');
             youtubeUrlInput.value = '';
             currentVideo = null;
             
-            // Update the usage stats (could fetch fresh data or use DOM manipulation)
-            updateUsageStats();
-            
         } catch (error) {
             console.error('Error:', error);
-            closeModalHandler();
             showToast(error.message, 'error');
         }
     }
