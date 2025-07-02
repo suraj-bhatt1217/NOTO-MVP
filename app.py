@@ -843,12 +843,53 @@ def bright_data_webhook():
             if video_doc.exists:
                 video_data['user_id'] = video_doc.to_dict().get('user_id')
                 logger.info(f"Found existing video document for user: {video_data['user_id']}")
+                
+                # Get user's plan type
+                user_ref = db.collection('users').document(video_data['user_id'])
+                user_doc = user_ref.get()
+                
+                if user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    plan_type = user_data.get('plan', 'free')
+                    
+                    # Generate summary if transcript exists
+                    transcript = parsed_data.get('transcript', '')
+                    if transcript:
+                        try:
+                            logger.info(f"Generating summary for video: {video_id}")
+                            summary = generate_summary(
+                                transcript=transcript,
+                                plan_type=plan_type,
+                                title=video_data.get('title', ''),
+                                channel=video_data.get('channel_name', '')
+                            )
+                            video_data['summary'] = summary
+                            logger.info(f"Successfully generated summary for video: {video_id}")
+                        except Exception as e:
+                            error_msg = f"Error generating summary: {str(e)}"
+                            logger.error(error_msg, exc_info=True)
+                            video_data['summary'] = "Error generating summary. Please try again later."
             else:
                 logger.warning(f"No existing video document found for video_id: {video_id}")
             
             # Save to database
             logger.info(f"Updating video document in Firestore: {video_id}")
             video_ref.set(video_data, merge=True)
+            
+            # Update user usage
+            if 'user_id' in video_data and 'video_length' in video_data:
+                try:
+                    update_user_usage(
+                        user_id=video_data['user_id'],
+                        duration_minutes=video_data['video_length'] / 60,  # Convert seconds to minutes
+                        video_id=video_id,
+                        title=video_data.get('title', 'Untitled'),
+                        summary=video_data.get('summary', '')
+                    )
+                    logger.info(f"Updated usage for user: {video_data['user_id']}")
+                except Exception as e:
+                    error_msg = f"Error updating user usage: {str(e)}"
+                    logger.error(error_msg, exc_info=True)
             
             logger.info(f"Successfully processed webhook for video: {video_id}")
             return jsonify({"status": "success"})
