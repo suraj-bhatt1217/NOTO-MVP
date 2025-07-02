@@ -95,6 +95,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Clear previous content in payment details
                 const paymentDetails = document.querySelector('.payment-details');
                 
+                // Clear any existing price displays first
+                const existingPriceDisplay = paymentDetails.querySelector('.price-display');
+                if (existingPriceDisplay) {
+                    paymentDetails.removeChild(existingPriceDisplay);
+                }
+                const existingPaymentNote = paymentDetails.querySelector('.payment-note');
+                if (existingPaymentNote) {
+                    paymentDetails.removeChild(existingPaymentNote);
+                }
+                
                 // Create styled elements for price display
                 const priceDisplay = document.createElement('div');
                 priceDisplay.className = 'price-display';
@@ -157,6 +167,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 },
                 theme: {
                     color: '#6200EA'
+                },
+                method: {
+                    upi: true,
+                    card: true,
                 }
             };
             
