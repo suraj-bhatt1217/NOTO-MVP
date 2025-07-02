@@ -668,9 +668,9 @@ async def process_video_summary(video_url, user_id):
     print(f"User ID: {user_id}")
     
     try:
-        # Get user data
+        # Get user data (synchronous operation)
         user_ref = db.collection("users").document(user_id)
-        user_doc = await user_ref.get()
+        user_doc = user_ref.get()  # This is synchronous
         
         if not user_doc.exists:
             print(f"Error: User {user_id} not found")
@@ -689,7 +689,7 @@ async def process_video_summary(video_url, user_id):
         
         # Check if we already have this video in progress/completed
         video_ref = db.collection("videos").document(video_id)
-        video_doc = await video_ref.get()
+        video_doc = video_ref.get()  # This is synchronous
         
         if video_doc.exists:
             video_data = video_doc.to_dict()
@@ -726,7 +726,7 @@ async def process_video_summary(video_url, user_id):
         
         # Mark video as processing
         print("Marking video as processing in database...")
-        await video_ref.set({
+        video_ref.set({
             'status': 'processing',
             'created_at': firestore.SERVER_TIMESTAMP,
             'user_id': user_id,
