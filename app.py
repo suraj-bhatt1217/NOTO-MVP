@@ -777,60 +777,87 @@ async def process_video_summary(video_url, user_id):
 
 
 @app.route("/api/webhooks/brightdata", methods=["POST"])
-async def bright_data_webhook():
+def bright_data_webhook():
     """Handle incoming webhooks from Bright Data"""
+    logger.info("--- BRIGHT DATA WEBHOOK RECEIVED ---")
+    logger.info(f"Headers: {dict(request.headers)}")
+    
     try:
         # Verify webhook signature if needed
         auth_header = request.headers.get('Authorization')
         expected_auth = f"Bearer {os.getenv('WEBHOOK_AUTH_SECRET')}"
         
-        if auth_header != expected_auth:
-            logger.warning("Invalid webhook signature")
+        if not auth_header or auth_header != expected_auth:
+            logger.warning(f"Invalid or missing webhook signature. Expected: {expected_auth}, Got: {auth_header}")
             return jsonify({"status": "error", "message": "Unauthorized"}), 401
             
         # Parse and validate the webhook data
-        payload = request.get_json()
-        parsed_data = BrightDataService.parse_webhook_data(payload)
-        
-        if not parsed_data['valid']:
-            logger.error(f"Invalid webhook data: {parsed_data.get('error')}")
-            return jsonify({"status": "error", "message": "Invalid data"}), 400
+        try:
+            payload = request.get_json()
+            logger.info(f"Received webhook payload: {json.dumps(payload, indent=2)}")
             
-        video_id = parsed_data['video_id']
-        
-        # Update video in database
-        video_data = {
-            'title': parsed_data['title'],
-            'video_length': parsed_data['video_length'],
-            'thumbnail_url': parsed_data['thumbnail_url'],
-            'published_at': parsed_data['published_at'],
-            'channel_name': parsed_data['channel_name'],
-            'channel_avatar': parsed_data['channel_avatar'],
-            'channel_url': parsed_data['channel_url'],
-            'view_count': parsed_data['view_count'],
-            'like_count': parsed_data['like_count'],
-            'subscriber_count': parsed_data['subscriber_count'],
-            'transcript': parsed_data['transcript'],
-            'quality': parsed_data['quality'],
-            'description': parsed_data['description'],
-            'status': 'completed',
-            'updated_at': firestore.SERVER_TIMESTAMP
-        }
-        
-        # Get the video document to find the user who requested it
-        video_doc = db.collection("videos").document(video_id).get()
-        if video_doc.exists:
-            video_data['user_id'] = video_doc.to_dict().get('user_id')
-        
-        # Save to database
-        db.collection("videos").document(video_id).set(video_data, merge=True)
-        
-        logger.info(f"Successfully processed webhook for video: {video_id}")
-        return jsonify({"status": "success"})
-        
+            parsed_data = BrightDataService.parse_webhook_data(payload)
+            logger.info(f"Parsed webhook data: {json.dumps(parsed_data, indent=2, default=str)}")
+            
+            if not parsed_data.get('valid'):
+                error_msg = f"Invalid webhook data: {parsed_data.get('error')}"
+                logger.error(error_msg)
+                return jsonify({"status": "error", "message": error_msg}), 400
+                
+            video_id = parsed_data.get('video_id')
+            if not video_id:
+                error_msg = "Missing video_id in parsed data"
+                logger.error(error_msg)
+                return jsonify({"status": "error", "message": error_msg}), 400
+            
+            logger.info(f"Processing webhook for video: {video_id}")
+            
+            # Prepare video data for update
+            video_data = {
+                'title': parsed_data.get('title', 'Untitled'),
+                'video_length': parsed_data.get('video_length', 0),
+                'thumbnail_url': parsed_data.get('thumbnail_url', ''),
+                'published_at': parsed_data.get('published_at', firestore.SERVER_TIMESTAMP),
+                'channel_name': parsed_data.get('channel_name', ''),
+                'channel_avatar': parsed_data.get('channel_avatar', ''),
+                'channel_url': parsed_data.get('channel_url', ''),
+                'view_count': parsed_data.get('view_count', 0),
+                'like_count': parsed_data.get('like_count', 0),
+                'subscriber_count': parsed_data.get('subscriber_count', 0),
+                'transcript': parsed_data.get('transcript', ''),
+                'quality': parsed_data.get('quality', 'standard'),
+                'description': parsed_data.get('description', ''),
+                'status': 'completed',
+                'updated_at': firestore.SERVER_TIMESTAMP,
+                'processing_completed_at': firestore.SERVER_TIMESTAMP
+            }
+            
+            # Get the video document to find the user who requested it
+            video_ref = db.collection("videos").document(video_id)
+            video_doc = video_ref.get()
+            
+            if video_doc.exists:
+                video_data['user_id'] = video_doc.to_dict().get('user_id')
+                logger.info(f"Found existing video document for user: {video_data['user_id']}")
+            else:
+                logger.warning(f"No existing video document found for video_id: {video_id}")
+            
+            # Save to database
+            logger.info(f"Updating video document in Firestore: {video_id}")
+            video_ref.set(video_data, merge=True)
+            
+            logger.info(f"Successfully processed webhook for video: {video_id}")
+            return jsonify({"status": "success"})
+            
+        except json.JSONDecodeError as je:
+            error_msg = f"Invalid JSON payload: {str(je)}"
+            logger.error(error_msg)
+            return jsonify({"status": "error", "message": error_msg}), 400
+            
     except Exception as e:
-        logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        error_msg = f"Error processing webhook: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        return jsonify({"status": "error", "message": error_msg}), 500
 
 
 ############################
