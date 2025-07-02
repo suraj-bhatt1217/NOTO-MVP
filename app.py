@@ -628,47 +628,86 @@ def get_video_details(video_id):
     return jsonify({"error": "Video not found in user history"}), 404
 
 
+import asyncio
+import traceback
+
 @app.route("/summarize", methods=["POST"])
 @auth_required
-@plan_checker  # Add plan checker decorator
-async def summarize_video():
+@plan_checker
+def summarize_video():
     """Handle video summarization"""
+    print("\n=== /summarize endpoint called ===")
+    print(f"Request data: {request.get_data()}")
+    
     try:
         data = request.get_json()
         video_url = data.get("video_url")
+        print(f"Processing video URL: {video_url}")
         
         if not video_url:
+            print("Error: No video URL provided")
             return jsonify({"error": "Video URL is required"}), 400
             
         # Get user info
         user_id = session["user"]["uid"]
+        print(f"Processing request for user: {user_id}")
+        
+        # Run the async function
+        return asyncio.run(process_video_summary(video_url, user_id))
+        
+    except Exception as e:
+        error_msg = f"Error in summarize_video: {str(e)}"
+        print(error_msg)
+        print(traceback.format_exc())
+        return jsonify({"error": "An error occurred while processing your request"}), 500
+
+async def process_video_summary(video_url, user_id):
+    """Async function to process video summary with detailed logging"""
+    print(f"\n--- Starting process_video_summary ---")
+    print(f"Video URL: {video_url}")
+    print(f"User ID: {user_id}")
+    
+    try:
+        # Get user data
         user_ref = db.collection("users").document(user_id)
-        user_doc = user_ref.get()
+        user_doc = await user_ref.get()
         
         if not user_doc.exists:
+            print(f"Error: User {user_id} not found")
             return jsonify({"error": "User not found"}), 404
             
         user_data = user_doc.to_dict()
+        print(f"User data retrieved - Plan: {user_data.get('subscription', {}).get('plan', 'free')}")
         
         # Extract video ID
         video_id = extract_video_id(video_url)
         if not video_id:
+            print(f"Error: Could not extract video ID from URL: {video_url}")
             return jsonify({"error": "Invalid YouTube URL"}), 400
             
+        print(f"Extracted video ID: {video_id}")
+        
         # Check if we already have this video in progress/completed
-        video_doc = db.collection("videos").document(video_id).get()
+        video_ref = db.collection("videos").document(video_id)
+        video_doc = await video_ref.get()
+        
         if video_doc.exists:
             video_data = video_doc.to_dict()
+            print(f"Found existing video data: {video_data}")
+            
             if video_data.get('status') == 'completed':
+                print("Video already processed, returning existing summary")
                 return jsonify({
-                    "status": "success",
+                    "status": "completed",
                     "video_id": video_id,
                     "summary": video_data.get('summary')
                 })
             elif video_data.get('status') == 'processing':
+                print("Video is already being processed")
                 return jsonify({
                     "status": "processing",
-                    "message": "Video is being processed. Please wait..."
+                    "video_id": video_id,
+                    "message": "Video is being processed. Please check back soon!"
                 })
         
         # Check user's plan limits
@@ -676,35 +715,43 @@ async def summarize_video():
         usage_minutes = user_data.get("usage", {}).get("minutes_used_this_month", 0)
         plan_limit = SUBSCRIPTION_PLANS[plan_type]["minutes_limit"]
         
-        # Get video duration (this will be updated by webhook later)
-        # For now, we'll just check if they have any minutes left
+        print(f"Plan check - Type: {plan_type}, Used: {usage_minutes}min, Limit: {plan_limit}min")
+        
         if usage_minutes >= plan_limit:
+            print("Error: User has exceeded plan limit")
             return jsonify({
                 "error": "Plan limit exceeded",
                 "message": "You've reached your monthly minute limit. Please upgrade your plan."
             }), 403
         
         # Mark video as processing
-        db.collection("videos").document(video_id).set({
+        print("Marking video as processing in database...")
+        await video_ref.set({
             'status': 'processing',
             'created_at': firestore.SERVER_TIMESTAMP,
             'user_id': user_id,
-            'video_url': f"https://www.youtube.com/watch?v={video_id}"
+            'video_url': f"https://www.youtube.com/watch?v={video_id}",
+            'title': 'Processing...',
+            'channel': 'Processing...',
+            'thumbnail': f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
         }, merge=True)
         
         # Trigger transcript extraction
+        print("Starting transcript extraction...")
         transcript, message = await get_video_transcript(video_id)
         
         if transcript:
-            # If we got a transcript immediately (shouldn't happen with Bright Data)
+            # This branch shouldn't normally be hit with Bright Data
+            print("Got transcript immediately (unexpected with Bright Data)")
             summary = await generate_summary(
                 transcript,
                 plan_type,
-                "Video Title",  # Will be updated by webhook
-                "Channel Name"  # Will be updated by webhook
+                "Video Title",
+                "Channel Name"
             )
             
             # Update video in database
+            print("Updating video with completed summary...")
             video_data = {
                 'status': 'completed',
                 'summary': summary,
