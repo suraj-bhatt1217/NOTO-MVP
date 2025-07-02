@@ -70,10 +70,23 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // For paid plans, create an order and show payment modal
         try {
+            // Get user's country (default to US if not detected)
+            let userCountry = 'US';
+            try {
+                const geoResponse = await fetch('https://ipapi.co/json/');
+                if (geoResponse.ok) {
+                    const geoData = await geoResponse.json();
+                    userCountry = geoData.country_code || 'US';
+                }
+            } catch (e) {
+                console.warn('Could not detect user country, defaulting to US', e);
+            }
+
             const response = await fetch('/api/create-subscription', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-User-Country': userCountry
                 },
                 body: JSON.stringify({ plan_id: planId }),
             });
@@ -88,72 +101,76 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Update modal content
             paymentPlanName.textContent = `Subscribe to ${data.product_name}`;
             
-            // Convert price to local currency for display but clearly show USD amount for payment
-            if (currencyConverter.initialized && currencyConverter.userCurrency !== 'USD') {
-                const convertedPrice = currencyConverter.convertPrice(data.amount);
-                
-                // Clear previous content in payment details
-                const paymentDetails = document.querySelector('.payment-details');
-                
-                // Clear any existing price displays first
-                const existingPriceDisplay = paymentDetails.querySelector('.price-display');
-                if (existingPriceDisplay) {
-                    paymentDetails.removeChild(existingPriceDisplay);
-                }
-                const existingPaymentNote = paymentDetails.querySelector('.payment-note');
-                if (existingPaymentNote) {
-                    paymentDetails.removeChild(existingPaymentNote);
-                }
-                
-                // Create styled elements for price display
-                const priceDisplay = document.createElement('div');
-                priceDisplay.className = 'price-display';
-                priceDisplay.style.margin = '20px 0';
-                
-                // Local currency display (for reference)
-                const localPriceDiv = document.createElement('div');
-                localPriceDiv.className = 'local-price';
-                localPriceDiv.innerHTML = `<span style="font-size:0.9em; color:#666;">Price in your currency (for reference):</span><br>
-                    <span style="font-size:1.4em; font-weight:600;">${convertedPrice.symbol}${convertedPrice.price}</span> <span class="currency-badge" style="font-size:0.7em; padding:2px 5px; border-radius:3px; background-color:rgba(98,0,234,0.1); color:#6200EA;">${currencyConverter.userCurrency}</span>`;
-                priceDisplay.appendChild(localPriceDiv);
-                
-                // Divider
-                const divider = document.createElement('div');
-                divider.style.margin = '15px 0';
-                divider.style.borderBottom = '1px solid #eee';
-                priceDisplay.appendChild(divider);
-                
-                // USD amount (actual charge)
-                const usdPriceDiv = document.createElement('div');
-                usdPriceDiv.className = 'usd-price';
-                usdPriceDiv.innerHTML = `<span style="font-size:0.9em; font-weight:600; color:#333;">You will be charged:</span><br>
-                    <span style="font-size:1.6em; font-weight:700; color:#6200EA;">$${data.amount / 100} USD</span>`;
-                priceDisplay.appendChild(usdPriceDiv);
-                
-                // Important note
-                const paymentNote = document.createElement('p');
-                paymentNote.className = 'payment-note';
-                paymentNote.innerHTML = `<i>Note: Your card will be charged in USD. Your bank may apply their own exchange rate.</i>`;
-                paymentNote.style.fontSize = '0.8em';
-                paymentNote.style.color = '#666';
-                paymentNote.style.marginTop = '15px';
-                
-                // Replace payment amount display
-                paymentAmount.style.display = 'none';
-                paymentDetails.insertBefore(priceDisplay, paymentDetails.firstChild);
-                paymentDetails.appendChild(paymentNote);
-            } else {
-                paymentAmount.textContent = `$${data.amount / 100} USD`;
+            // Always show price in USD for consistency
+            const displayAmount = data.display_amount || (data.amount / 100);
+            const displayCurrency = data.display_currency || 'USD';
+            const isIndianUser = data.is_indian_user || false;
+            
+            // Clear previous content in payment details
+            const paymentDetails = document.querySelector('.payment-details');
+            
+            // Clear any existing price displays first
+            const existingPriceDisplay = paymentDetails.querySelector('.price-display');
+            if (existingPriceDisplay) {
+                paymentDetails.removeChild(existingPriceDisplay);
             }
+            const existingPaymentNote = paymentDetails.querySelector('.payment-note');
+            if (existingPaymentNote) {
+                paymentDetails.removeChild(existingPaymentNote);
+            }
+            
+            // Create styled elements for price display
+            const priceDisplay = document.createElement('div');
+            priceDisplay.className = 'price-display';
+            priceDisplay.style.margin = '20px 0';
+            
+            // Show price in USD
+            const usdPriceDiv = document.createElement('div');
+            usdPriceDiv.className = 'usd-price';
+            usdPriceDiv.innerHTML = `
+                <div style="font-size:0.9em; font-weight:600; color:#333; margin-bottom:5px;">You will be charged:</div>
+                <div style="font-size:1.6em; font-weight:700; color:#6200EA;">$${displayAmount} ${displayCurrency}</div>
+            `;
+            priceDisplay.appendChild(usdPriceDiv);
+            
+            // Add payment note
+            const paymentNote = document.createElement('p');
+            paymentNote.className = 'payment-note';
+            paymentNote.style.fontSize = '0.8em';
+            paymentNote.style.color = '#666';
+            paymentNote.style.marginTop = '15px';
+            
+            if (isIndianUser) {
+                // For Indian users, show note about local payment methods
+                paymentNote.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <i>You can pay using:</i>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                        <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">UPI</span>
+                        <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">Net Banking</span>
+                        <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">Credit Card</span>
+                        <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">Debit Card</span>
+                        <span style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8em;">Wallets</span>
+                    </div>
+                `;
+            } else {
+                paymentNote.innerHTML = '<i>Your card will be charged in USD. Your bank may apply their own exchange rate.</i>';
+            }
+            
+            // Replace payment amount display
+            paymentAmount.style.display = 'none';
+            paymentDetails.insertBefore(priceDisplay, paymentDetails.firstChild);
+            paymentDetails.appendChild(paymentNote);
             
             // Show payment modal
             paymentModal.style.display = 'block';
             
-            // Create Razorpay button
+            // Create Razorpay button with appropriate payment methods
             const options = {
                 key: data.key_id,
                 amount: data.amount,
-                currency: data.currency,
+                currency: data.currency, // This will be INR for Indian users, USD for others
                 name: 'NotoAI',
                 description: data.description,
                 order_id: data.order_id,
@@ -163,15 +180,29 @@ document.addEventListener('DOMContentLoaded', async function() {
                 prefill: {
                     name: data.user_info.name,
                     email: data.user_info.email,
-                    contact: data.user_info.contact
+                    contact: data.user_info.contact || ''
                 },
                 theme: {
                     color: '#6200EA'
                 },
-                method: {
+                // Only enable specific payment methods based on user's country
+                method: isIndianUser ? {
                     upi: true,
                     card: true,
-                }
+                    netbanking: true,
+                    wallet: true
+                } : {
+                    card: true
+                },
+                // Additional options for Indian users
+                ...(isIndianUser ? {
+                    modal: {
+                        ondismiss: function() {
+                            // Handle modal close if needed
+                            console.log('Payment modal dismissed');
+                        }
+                    }
+                } : {})
             };
             
             const rzp = new Razorpay(options);

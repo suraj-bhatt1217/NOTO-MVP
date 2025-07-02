@@ -17,11 +17,10 @@ from datetime import timedelta, datetime
 import os
 import re
 from dotenv import load_dotenv
-from youtube_transcript_api import (
-    YouTubeTranscriptApi,
-    NoTranscriptFound,
-    TranscriptsDisabled,
-)
+from services.bright_data import BrightDataService
+
+# Initialize BrightData service
+bright_data_service = BrightDataService()
 import openai
 import razorpay
 import json
@@ -420,98 +419,6 @@ def extract_video_info():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/summarize-video", methods=["POST"])
-@auth_required
-@plan_checker
-def summarize_video():
-    data = request.json
-    video_url = data.get("video_url", "")
-
-    if not video_url:
-        return jsonify({"error": "No video URL provided"}), 400
-
-    try:
-        video_id = extract_video_id(video_url)
-        if not video_id:
-            return jsonify({"error": "Invalid YouTube URL"}), 400
-
-        # Extract transcript
-        transcript = get_video_transcript(video_id)
-        if not transcript:
-            return (
-                jsonify({"error": "Could not extract transcript from this video"}),
-                400,
-            )
-
-        # Get video info for duration tracking
-        api_key = os.getenv("YOUTUBE_API_KEY")
-        video_details_url = f"https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={api_key}&part=snippet,contentDetails"
-        response = requests.get(video_details_url)
-        video_data = response.json()
-
-        if not video_data.get("items"):
-            return jsonify({"error": "Video not found or unavailable"}), 404
-
-        video_info = video_data["items"][0]
-        duration_seconds = parse_duration(video_info["contentDetails"]["duration"])
-        duration_minutes = duration_seconds / 60
-        title = video_info["snippet"]["title"]
-        channel = video_info["snippet"]["channelTitle"]
-
-        # Check if the video duration would exceed the user's remaining minutes
-        user_id = session["user"]["uid"]
-        user_ref = db.collection("users").document(user_id)
-        user_doc = user_ref.get().to_dict()
-        plan_type = user_doc.get("subscription", {}).get("plan", "free")
-        
-        # Get current usage and plan limit
-        usage_minutes = user_doc.get("usage", {}).get("minutes_used_this_month", 0)
-        plan_limit = SUBSCRIPTION_PLANS[plan_type]["minutes_limit"]
-        remaining_minutes = plan_limit - usage_minutes
-        
-        # Check if this video would exceed the remaining minutes
-        if duration_minutes > remaining_minutes:
-            return (
-                jsonify(
-                    {
-                        "error": "Plan limit would be exceeded",
-                        "minutes_used": usage_minutes,
-                        "video_duration": round(duration_minutes, 2),
-                        "remaining_minutes": round(remaining_minutes, 2),
-                        "plan_limit": plan_limit,
-                        "message": f"This video is {round(duration_minutes, 2)} minutes long, but you only have {round(remaining_minutes, 2)} minutes remaining in your plan. Please upgrade your plan to process longer videos.",
-                    }
-                ),
-                403,
-            )
-
-        summary = generate_summary(transcript, plan_type, title, channel)
-
-        # Update user's usage
-        update_user_usage(user_id, duration_minutes, video_id, title, summary)
-
-        return jsonify(
-            {
-                "video_id": video_id,
-                "title": title,
-                "duration_minutes": round(duration_minutes, 2),
-                "summary": summary,
-                "transcript": (
-                    transcript[:1000] + "..." if len(transcript) > 1000 else transcript
-                ),  # Shortened transcript preview
-            }
-        )
-
-    except NoTranscriptFound:
-        return jsonify({"error": "No transcript found for this video"}), 404
-
-    except TranscriptsDisabled:
-        return jsonify({"error": "Transcripts are disabled for this video"}), 403
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/api/user-usage")
 @auth_required
 def get_user_usage():
@@ -573,6 +480,7 @@ def get_recent_videos():
 def create_subscription():
     data = request.json
     plan_id = data.get("plan_id")
+    user_country = request.headers.get('X-User-Country', 'US')  # Get user's country from frontend
 
     if not plan_id or plan_id not in SUBSCRIPTION_PLANS:
         return jsonify({"error": "Invalid plan selected"}), 400
@@ -588,11 +496,20 @@ def create_subscription():
     user_email = session["user"].get("email", "customer@example.com")
 
     try:
-        # Create an order
-        order_amount = plan_data["price"]  # amount in paise
-        order_currency = plan_data["currency"]
+        # For Indian users, convert to INR for Razorpay
+        is_indian_user = user_country.upper() == 'IN'
+        
+        if is_indian_user:
+            # Convert USD to INR (1 USD = 83.33 INR as an example)
+            conversion_rate = 83.33
+            order_amount = int(plan_data["price"] * conversion_rate)  # Convert to paise
+            order_currency = "INR"
+        else:
+            order_amount = plan_data["price"]  # amount in paise (USD)
+            order_currency = plan_data["currency"]
+            
         order_receipt = f"order_rcptid_{secrets.token_hex(6)}"
-        notes = {"user_id": user_id, "plan_id": plan_id}
+        notes = {"user_id": user_id, "plan_id": plan_id, "original_currency": "USD", "original_amount": plan_data["price"]}
 
         order = razorpay_client.order.create(
             {
@@ -603,11 +520,16 @@ def create_subscription():
             }
         )
 
+        # Always return display amount in USD
+        display_amount = plan_data["price"] / 100  # Convert to dollars
+
         return jsonify(
             {
                 "order_id": order["id"],
                 "amount": order_amount,
                 "currency": order_currency,
+                "display_amount": display_amount,
+                "display_currency": "USD",
                 "key_id": RAZORPAY_KEY_ID,
                 "product_name": plan_data["name"],
                 "description": f"Subscription to {plan_data['name']}",
@@ -616,6 +538,7 @@ def create_subscription():
                     "email": user_email,
                     "contact": session["user"].get("phoneNumber", ""),
                 },
+                "is_indian_user": is_indian_user
             }
         )
 
@@ -705,6 +628,164 @@ def get_video_details(video_id):
     return jsonify({"error": "Video not found in user history"}), 404
 
 
+@app.route("/summarize", methods=["POST"])
+@auth_required
+@plan_checker  # Add plan checker decorator
+async def summarize_video():
+    """Handle video summarization"""
+    try:
+        data = request.get_json()
+        video_url = data.get("video_url")
+        
+        if not video_url:
+            return jsonify({"error": "Video URL is required"}), 400
+            
+        # Get user info
+        user_id = session["user"]["uid"]
+        user_ref = db.collection("users").document(user_id)
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return jsonify({"error": "User not found"}), 404
+            
+        user_data = user_doc.to_dict()
+        
+        # Extract video ID
+        video_id = extract_video_id(video_url)
+        if not video_id:
+            return jsonify({"error": "Invalid YouTube URL"}), 400
+            
+        # Check if we already have this video in progress/completed
+        video_doc = db.collection("videos").document(video_id).get()
+        if video_doc.exists:
+            video_data = video_doc.to_dict()
+            if video_data.get('status') == 'completed':
+                return jsonify({
+                    "status": "success",
+                    "video_id": video_id,
+                    "summary": video_data.get('summary')
+                })
+            elif video_data.get('status') == 'processing':
+                return jsonify({
+                    "status": "processing",
+                    "message": "Video is being processed. Please wait..."
+                })
+        
+        # Check user's plan limits
+        plan_type = user_data.get("subscription", {}).get("plan", "free")
+        usage_minutes = user_data.get("usage", {}).get("minutes_used_this_month", 0)
+        plan_limit = SUBSCRIPTION_PLANS[plan_type]["minutes_limit"]
+        
+        # Get video duration (this will be updated by webhook later)
+        # For now, we'll just check if they have any minutes left
+        if usage_minutes >= plan_limit:
+            return jsonify({
+                "error": "Plan limit exceeded",
+                "message": "You've reached your monthly minute limit. Please upgrade your plan."
+            }), 403
+        
+        # Mark video as processing
+        db.collection("videos").document(video_id).set({
+            'status': 'processing',
+            'created_at': firestore.SERVER_TIMESTAMP,
+            'user_id': user_id,
+            'video_url': f"https://www.youtube.com/watch?v={video_id}"
+        }, merge=True)
+        
+        # Trigger transcript extraction
+        transcript, message = await get_video_transcript(video_id)
+        
+        if transcript:
+            # If we got a transcript immediately (shouldn't happen with Bright Data)
+            summary = await generate_summary(
+                transcript,
+                plan_type,
+                "Video Title",  # Will be updated by webhook
+                "Channel Name"  # Will be updated by webhook
+            )
+            
+            # Update video in database
+            video_data = {
+                'status': 'completed',
+                'summary': summary,
+                'updated_at': firestore.SERVER_TIMESTAMP,
+                'title': "Video Title",
+                'channel': "Channel Name"
+            }
+            db.collection("videos").document(video_id).set(video_data, merge=True)
+            
+            return jsonify({
+                "status": "success",
+                "video_id": video_id,
+                "summary": summary
+            })
+        
+        return jsonify({
+            "status": "processing",
+            "message": message or "Video is being processed. You'll be notified when it's ready."
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/webhooks/brightdata", methods=["POST"])
+async def bright_data_webhook():
+    """Handle incoming webhooks from Bright Data"""
+    try:
+        # Verify webhook signature if needed
+        auth_header = request.headers.get('Authorization')
+        expected_auth = f"Bearer {os.getenv('WEBHOOK_AUTH_SECRET')}"
+        
+        if auth_header != expected_auth:
+            logger.warning("Invalid webhook signature")
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+            
+        # Parse and validate the webhook data
+        payload = request.get_json()
+        parsed_data = BrightDataService.parse_webhook_data(payload)
+        
+        if not parsed_data['valid']:
+            logger.error(f"Invalid webhook data: {parsed_data.get('error')}")
+            return jsonify({"status": "error", "message": "Invalid data"}), 400
+            
+        video_id = parsed_data['video_id']
+        
+        # Update video in database
+        video_data = {
+            'title': parsed_data['title'],
+            'video_length': parsed_data['video_length'],
+            'thumbnail_url': parsed_data['thumbnail_url'],
+            'published_at': parsed_data['published_at'],
+            'channel_name': parsed_data['channel_name'],
+            'channel_avatar': parsed_data['channel_avatar'],
+            'channel_url': parsed_data['channel_url'],
+            'view_count': parsed_data['view_count'],
+            'like_count': parsed_data['like_count'],
+            'subscriber_count': parsed_data['subscriber_count'],
+            'transcript': parsed_data['transcript'],
+            'quality': parsed_data['quality'],
+            'description': parsed_data['description'],
+            'status': 'completed',
+            'updated_at': firestore.SERVER_TIMESTAMP
+        }
+        
+        # Get the video document to find the user who requested it
+        video_doc = db.collection("videos").document(video_id).get()
+        if video_doc.exists:
+            video_data['user_id'] = video_doc.to_dict().get('user_id')
+        
+        # Save to database
+        db.collection("videos").document(video_id).set(video_data, merge=True)
+        
+        logger.info(f"Successfully processed webhook for video: {video_id}")
+        return jsonify({"status": "success"})
+        
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 ############################
 """ Helper functions """
 
@@ -721,10 +802,31 @@ def extract_video_id(url):
 
 
 # Get video transcript
-def get_video_transcript(video_id):
-    transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-    transcript_text = " ".join([t.get("text", "") for t in transcript_list])
-    return transcript_text
+async def get_video_transcript(video_id):
+    """Get video transcript using Bright Data
+    Returns:
+        tuple: (transcript_text, status_message)
+    """
+    try:
+        # First check if we already have this video in our database
+        video_ref = db.collection("videos").document(video_id)
+        video_doc = video_ref.get()
+        
+        if video_doc.exists and "transcript" in video_doc.to_dict():
+            # Return existing transcript if available
+            return video_doc.to_dict()["transcript"], "Transcript retrieved from cache"
+            
+        # If not in DB, trigger Bright Data extraction
+        result = await bright_data_service.trigger_transcript_extraction(video_id)
+        if not result.get('success'):
+            logger.error(f"Failed to trigger extraction: {result.get('error')}")
+            return None, "Failed to start transcript extraction"
+            
+        return None, "Transcript is being processed. Please try again in a moment."
+        
+    except Exception as e:
+        logger.error(f"Error in get_video_transcript: {str(e)}")
+        return None, f"Error processing transcript: {str(e)}"
 
 
 # Generate summary from transcript
