@@ -19,6 +19,10 @@ import re
 from dotenv import load_dotenv
 from services.bright_data import BrightDataService
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Initialize BrightData service
 bright_data_service = BrightDataService()
 import openai
