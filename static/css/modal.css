@@ -1,4 +1,4 @@
-/* Modal Styles */
+/* Modern SaaS Modal Components */
 .modal {
     display: none;
     position: fixed;
@@ -6,45 +6,127 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.85);
     z-index: var(--z-modal);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    animation: modal-backdrop-fade-in 0.3s ease;
+}
+
+@keyframes modal-backdrop-fade-in {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
 }
 
 .modal-content {
     position: relative;
-    background-color: rgba(18, 18, 18, 0.95);
-    margin: 8% auto;
+    background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(15, 15, 15, 0.9));
+    margin: 5% auto;
     padding: var(--space-2xl);
-    width: 85%;
-    max-width: 800px;
-    max-height: 80vh;
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
     overflow-y: auto;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid rgba(212, 175, 55, 0.08);
-    animation: modalFadeIn 0.3s ease;
+    border-radius: var(--radius-xl);
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.5),
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.1);
+    animation: modal-content-slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes modalFadeIn {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+.modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    opacity: 0.8;
 }
 
+.modal-content::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    animation: subtle-modal-glow 10s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes subtle-modal-glow {
+    0% { opacity: 0.3; transform: rotate(0deg) scale(1); }
+    100% { opacity: 0.6; transform: rotate(180deg) scale(1.1); }
+}
+
+@keyframes modal-content-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.025em;
+}
+
+/* Modal Actions */
 .modal-actions {
     display: flex;
     justify-content: flex-end;
+    gap: var(--space-md);
     margin-bottom: var(--space-lg);
     padding-bottom: var(--space-md);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .modal-actions button {
     font-size: 0.9rem;
-    padding: 0.6rem 1rem;
+    padding: 0.75rem 1.5rem;
+    min-width: 120px;
 }
 
+/* Close Button */
 .close-modal {
     position: absolute;
     top: var(--space-lg);
@@ -52,16 +134,306 @@
     font-size: 1.5rem;
     color: var(--text-tertiary);
     cursor: pointer;
-    transition: all var(--transition-normal);
-    width: 36px;
-    height: 36px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 10;
 }
 
 .close-modal:hover {
     color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.close-modal:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* Modal Body */
+.modal-body {
+    position: relative;
+    z-index: 1;
+}
+
+/* Summary Modal Specific Styles */
+#summary-modal .modal-content {
+    max-width: 1000px;
+}
+
+#summary-title {
+    font-size: 2rem;
+    margin-bottom: var(--space-lg);
+    color: var(--text-primary);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+#summary-body {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+/* Markdown Content Styling */
+.markdown-content {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    color: var(--text-primary);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-md);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.markdown-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+    padding-bottom: var(--space-sm);
+}
+
+.markdown-content h2 {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+}
+
+.markdown-content h3 {
+    font-size: 1.3rem;
+}
+
+.markdown-content p {
+    margin-bottom: var(--space-md);
+    line-height: 1.7;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-xl);
+}
+
+.markdown-content li {
+    margin-bottom: var(--space-xs);
+    line-height: 1.6;
+}
+
+.markdown-content strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.markdown-content em {
+    color: var(--accent-color);
+    font-style: italic;
+}
+
+.markdown-content code {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--accent-color);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding-left: var(--space-md);
+    margin: var(--space-lg) 0;
+    font-style: italic;
+    color: var(--text-tertiary);
+    background: rgba(212, 175, 55, 0.05);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+}
+
+/* Payment Modal Specific Styles */
+#payment-modal .modal-content {
+    max-width: 500px;
+}
+
+.payment-details {
+    background: rgba(0, 0, 0, 0.2);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    margin: var(--space-lg) 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.payment-details p {
+    margin-bottom: var(--space-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-details strong {
+    color: var(--accent-color);
+}
+
+/* Loading Spinner in Modal */
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+    text-align: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(212, 175, 55, 0.2);
+    border-top: 3px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-md);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Modal Responsive Design */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: var(--space-xl);
+        max-height: 90vh;
+        border-radius: var(--radius-lg);
+    }
+    
+    .modal-title {
+        font-size: 1.5rem;
+    }
+    
+    #summary-title {
+        font-size: 1.6rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .modal-actions button {
+        width: 100%;
+    }
+    
+    .close-modal {
+        top: var(--space-md);
+        right: var(--space-md);
+        width: 36px;
+        height: 36px;
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 98%;
+        margin: 5% auto;
+        padding: var(--space-lg);
+        border-radius: var(--radius-md);
+    }
+    
+    .modal-title {
+        font-size: 1.3rem;
+    }
+    
+    #summary-title {
+        font-size: 1.4rem;
+    }
+    
+    .markdown-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .markdown-content h2 {
+        font-size: 1.3rem;
+    }
+    
+    .markdown-content h3 {
+        font-size: 1.1rem;
+    }
+    
+    .payment-details {
+        padding: var(--space-md);
+    }
+}
+
+/* Modal Animation Variants */
+.modal.fade-in {
+    animation: modal-fade-in 0.3s ease;
+}
+
+.modal.slide-down {
+    animation: modal-slide-down 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modal-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Custom Scrollbar for Modal Content */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.3);
+    border-radius: var(--radius-sm);
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.5);
 }

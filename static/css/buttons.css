@@ -1,87 +1,155 @@
-/* Buttons */
+/* Modern SaaS Button Components */
 .btn, .btn-primary, .btn-secondary, .btn-outline, .cta-button, .auth-button, .view-summary-btn, #download-notes-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.75rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 500;
-    border-radius: var(--radius-md);
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    border-radius: var(--radius-lg);
     text-align: center;
     text-decoration: none;
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     border: none;
     outline: none;
     gap: var(--space-sm);
-    min-width: 120px;
+    min-width: 140px;
+    white-space: nowrap;
+    user-select: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
+/* Primary Button - Premium Gradient Design */
 .btn-primary, .cta-button, .auth-button {
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    color: var(--primary-bg);
-    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    color: #ffffff;
+    box-shadow: 
+        0 4px 14px rgba(99, 102, 241, 0.25),
+        0 2px 6px rgba(139, 92, 246, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.btn-primary::before, .cta-button::before, .auth-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
 }
 
 .btn-primary:hover, .cta-button:hover, .auth-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.25);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        0 8px 25px rgba(99, 102, 241, 0.35),
+        0 4px 12px rgba(139, 92, 246, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+}
+
+.btn-primary:hover::before, .cta-button:hover::before, .auth-button:hover::before {
+    left: 100%;
 }
 
 .btn-primary:active, .cta-button:active, .auth-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 5px rgba(212, 175, 55, 0.2);
+    transform: translateY(0) scale(0.98);
+    box-shadow: 
+        0 2px 8px rgba(99, 102, 241, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Secondary Button - Glass Morphism Design */
 .btn-secondary {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .btn-secondary:active {
-    transform: translateY(1px);
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Outline Button - Modern Border Design */
 .btn-outline {
-    background-color: transparent;
+    background: transparent;
     color: var(--accent-color);
-    border: 1px solid var(--accent-color);
+    border: 2px solid var(--accent-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-outline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+    transition: left 0.3s ease;
+    z-index: -1;
 }
 
 .btn-outline:hover {
-    background-color: rgba(212, 175, 55, 0.1);
-    color: var(--accent-light);
+    color: var(--primary-bg);
+    border-color: var(--accent-light);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25);
+}
+
+.btn-outline:hover::before {
+    left: 0;
 }
 
 .btn-outline:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 5px rgba(212, 175, 55, 0.1);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
 }
 
+/* Button Sizes */
 .btn-large {
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
+    padding: 1.125rem 2.25rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    min-width: 160px;
 }
 
 .btn-small {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.85rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     min-width: 100px;
 }
 
 .btn-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     min-width: unset;
     padding: 0;
     border-radius: 50%;
@@ -95,67 +163,40 @@
     height: 20px;
 }
 
+/* Disabled State */
 .btn:disabled, .btn-primary:disabled, .btn-secondary:disabled, .btn-outline:disabled, .current-plan-btn {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
     transform: none !important;
     box-shadow: none !important;
-}
-
-/* Pulse effect for primary buttons on hover */
-.btn-primary:hover::after, .cta-button:hover::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: var(--radius-md);
-    animation: btn-pulse 1.5s infinite;
-    background-color: rgba(212, 175, 55, 0.7);
-    z-index: -1;
-}
-
-@keyframes btn-pulse {
-    0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
-    }
-    70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
-    }
-    100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
-    }
+    background: rgba(100, 100, 100, 0.3) !important;
+    border-color: rgba(100, 100, 100, 0.3) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* Premium Subscription Buttons */
 .subscribe-btn {
-    background: linear-gradient(135deg, #8a2be2 0%, #4b0082 100%);
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
     color: white;
     border: none;
-    padding: 0.9rem 1.8rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    box-shadow: 
+        0 6px 20px rgba(5, 150, 105, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    text-transform: none;
+    letter-spacing: 0.025em;
     width: 100%;
-    margin-top: 1rem;
-}
-
-.subscribe-btn:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.5);
-}
-
-.subscribe-btn:active {
-    transform: translateY(1px);
+    margin-top: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .subscribe-btn::before {
@@ -166,112 +207,195 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: all 0.6s ease;
+    transition: left 0.6s ease;
+}
+
+.subscribe-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+        0 10px 30px rgba(5, 150, 105, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%);
 }
 
 .subscribe-btn:hover::before {
     left: 100%;
 }
 
-.subscribe-btn::after {
-    content: '→';
-    position: absolute;
-    right: 20px;
-    opacity: 0;
-    transition: all 0.3s ease;
+.subscribe-btn:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 
+        0 4px 15px rgba(5, 150, 105, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.subscribe-btn:hover::after {
-    opacity: 1;
-    right: 15px;
-}
-
-/* Payment button (Razorpay) custom styling */
-#razorpay-container button,
-.razorpay-payment-button {
-    background: linear-gradient(135deg, #00c853 0%, #009624 100%) !important;
-    color: white !important;
-    border: none !important;
-    padding: 0.9rem 1.8rem !important;
-    font-size: 1.1rem !important;
-    font-weight: 600 !important;
-    border-radius: var(--radius-md) !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-    box-shadow: 0 6px 15px rgba(0, 200, 83, 0.3) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    width: 100% !important;
-    margin-top: 1.5rem !important;
-    display: block !important;
-}
-
-#razorpay-container button:hover,
-.razorpay-payment-button:hover {
-    transform: translateY(-3px) scale(1.03) !important;
-    box-shadow: 0 8px 20px rgba(0, 200, 83, 0.4) !important;
-    background: linear-gradient(135deg, #00e676 0%, #00c853 100%) !important;
-}
-
-/* Current plan button with premium styling */
+/* Current Plan Button */
 .current-plan-btn {
-    background: linear-gradient(135deg, #757575 0%, #424242 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
     color: white;
     border: none;
-    padding: 0.9rem 1.8rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    border-radius: var(--radius-lg);
     cursor: not-allowed;
     position: relative;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    box-shadow: 
+        0 4px 12px rgba(107, 114, 128, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    text-transform: none;
+    letter-spacing: 0.025em;
     width: 100%;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     opacity: 0.8;
 }
 
 .current-plan-btn::before {
     content: '✓';
     position: absolute;
-    left: 15px;
+    left: 1rem;
+    font-size: 1.2rem;
 }
 
-/* Additional Button Styles */
+/* Razorpay Payment Button Styling */
+#razorpay-container button,
+.razorpay-payment-button {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 1rem 2rem !important;
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.025em !important;
+    border-radius: var(--radius-lg) !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 
+        0 6px 20px rgba(30, 64, 175, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    text-transform: none !important;
+    letter-spacing: 0.025em !important;
+    width: 100% !important;
+    margin-top: 1.5rem !important;
+    display: block !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+#razorpay-container button:hover,
+.razorpay-payment-button:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 
+        0 10px 30px rgba(30, 64, 175, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%) !important;
+}
+
+/* Utility Button Classes */
 .upgrade-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     text-decoration: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--accent-color);
-    background-color: rgba(212, 175, 55, 0.1);
-    border: 1px solid var(--accent-color);
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.2);
     margin-top: var(--space-md);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .upgrade-link:hover {
-    background-color: rgba(212, 175, 55, 0.2);
+    background: rgba(212, 175, 55, 0.15);
+    border-color: rgba(212, 175, 55, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.2);
+    color: var(--accent-light);
 }
 
 .view-summary, .view-all {
     color: var(--accent-color);
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
-    transition: all var(--transition-normal);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.15);
 }
 
 .view-summary:hover, .view-all:hover {
     color: var(--accent-light);
-    text-decoration: underline;
+    background: rgba(212, 175, 55, 0.15);
+    border-color: rgba(212, 175, 55, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+}
+
+/* Loading States */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin: auto;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: button-loading-spinner 1s ease infinite;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0turn);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* Responsive Button Adjustments */
+@media (max-width: 768px) {
+    .btn, .btn-primary, .btn-secondary, .btn-outline {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        min-width: 120px;
+    }
+    
+    .btn-large {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+    
+    .btn-small {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        min-width: 90px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cta-buttons {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .btn, .btn-primary, .btn-secondary, .btn-outline {
+        width: 100%;
+        justify-content: center;
+    }
 }

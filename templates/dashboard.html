@@ -18,8 +18,8 @@
     <main class="dashboard-container">
       <div class="hero-section">
         <div class="hero-content">
-          <h1>Transform YouTube Videos into Smart Notes</h1>
-          <p class="subtitle">Paste a YouTube URL and get intelligent notes in seconds</p>
+          <h1 class="leading-none tracking-tighter">Transform YouTube Videos into Smart Notes</h1>
+          <p class="subtitle text-lg leading-relaxed">Paste a YouTube URL and get intelligent notes in seconds</p>
           
           <div class="url-input-container">
             <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=..." />
@@ -41,22 +41,22 @@
 
       <div class="dashboard-stats">
         <div class="usage-card">
-          <h2>Your Usage</h2>
+          <h2 class="text-3xl font-bold tracking-tight">Your Usage</h2>
           <div class="usage-meter">
             <div class="usage-progress">
               <div id="usageProgressBar" class="progress-bar" data-percent="{{ plan_data.percentage_used }}"></div>
             </div>
-            <p>{{ plan_data.minutes_used }} / {{ plan_data.minutes_limit }} minutes used</p>
+            <p class="text-base font-medium">{{ plan_data.minutes_used }} / {{ plan_data.minutes_limit }} minutes used</p>
           </div>
           <div class="plan-info">
-            <p class="current-plan"><strong>Current Plan:</strong> {{ plans[plan_data.plan].name }}</p>
-            <p><strong>Next Billing:</strong> {{ plan_data.next_billing_date }}</p>
+            <p class="current-plan font-semibold"><strong class="font-bold">Current Plan:</strong> {{ plans[plan_data.plan].name }}</p>
+            <p class="font-medium"><strong class="font-semibold">Next Billing:</strong> {{ plan_data.next_billing_date }}</p>
             <a href="{{ url_for('pricing') }}" class="upgrade-link">Upgrade Plan</a>
           </div>
         </div>
 
         <div class="recent-activity">
-          <h2>Recent Videos</h2>
+          <h2 class="text-3xl font-bold tracking-tight">Recent Videos</h2>
           {% if plan_data.recent_videos %}
             <ul class="video-list">
               {% for video in plan_data.recent_videos %}
@@ -71,7 +71,7 @@
             </ul>
             <a href="{{ url_for('my_videos') }}" class="view-all">View All Videos</a>
           {% else %}
-            <p class="empty-state">No videos processed yet. Start by pasting a YouTube URL above.</p>
+            <p class="empty-state text-base">No videos processed yet. Start by pasting a YouTube URL above.</p>
           {% endif %}
         </div>
       </div>
@@ -82,10 +82,10 @@
           <span class="close-modal">&times;</span>
           <div class="loading-spinner hidden" id="summary-loading">
             <div class="spinner"></div>
-            <p>Generating your notes...</p>
+            <p class="text-base font-medium">Generating your notes...</p>
           </div>
           <div id="summary-content">
-            <h2 id="summary-title">Video Title</h2>
+            <h2 id="summary-title" class="text-3xl font-bold tracking-tight">Video Title</h2>
             <div id="summary-body" class="markdown-content"></div>
           </div>
         </div>

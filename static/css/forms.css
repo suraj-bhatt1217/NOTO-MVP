@@ -1,13 +1,17 @@
-/* Form Elements */
+/* Modern SaaS Form Components */
 .form-group {
     margin-bottom: var(--space-lg);
+    position: relative;
 }
 
 .form-label {
     display: block;
     margin-bottom: var(--space-xs);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
     color: var(--text-secondary);
+    transition: all var(--transition-normal);
 }
 
 .form-input,
@@ -15,20 +19,28 @@ textarea.form-input,
 select.form-input,
 #youtube-url {
     width: 100%;
-    padding: 0.9rem 1rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-lg);
     color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: 0.95rem;
-    transition: all var(--transition-normal);
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-sizing: border-box;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
 }
 
 textarea.form-input {
     min-height: 120px;
     resize: vertical;
+    line-height: 1.6;
 }
 
 .form-input:focus, 
@@ -36,71 +48,103 @@ textarea.form-input {
 textarea.form-input:focus, 
 select.form-input:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+    box-shadow: 
+        0 0 0 3px rgba(212, 175, 55, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 4px 12px rgba(0, 0, 0, 0.15);
     border-color: var(--accent-color);
-    background-color: rgba(0, 0, 0, 0.3);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.3));
+    transform: translateY(-1px);
 }
 
 .form-input::placeholder, 
 #youtube-url::placeholder, 
 textarea.form-input::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.4);
     font-style: italic;
+    transition: all var(--transition-normal);
 }
 
-/* Floating label effect */
+.form-input:focus::placeholder,
+#youtube-url:focus::placeholder,
+textarea.form-input:focus::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    transform: translateX(4px);
+}
+
+/* Enhanced Floating Label Effect */
 .input-floating {
     position: relative;
+    margin-bottom: var(--space-lg);
 }
 
 .input-floating .form-input {
-    padding: 1.2rem 1rem 0.8rem;
+    padding: 1.5rem 1.25rem 0.75rem;
 }
 
 .input-floating .form-label {
     position: absolute;
     top: 50%;
-    left: 1rem;
+    left: 1.25rem;
     transform: translateY(-50%);
-    background-color: transparent;
-    transition: all var(--transition-normal);
+    background: linear-gradient(135deg, var(--text-secondary), var(--text-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
-    padding: 0 0.25rem;
+    padding: 0 0.5rem;
     margin: 0;
-    z-index: 1;
+    z-index: 2;
+    font-weight: 500;
 }
 
 .input-floating .form-input:focus + .form-label,
 .input-floating .form-input:not(:placeholder-shown) + .form-label {
-    top: 0.7rem;
+    top: 0.75rem;
     transform: translateY(0);
     font-size: 0.75rem;
-    color: var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
 }
 
-/* Input with icon */
+/* Input with Icon */
 .input-with-icon {
     position: relative;
 }
 
 .input-with-icon .form-input {
-    padding-left: 3rem;
+    padding-left: 3.5rem;
 }
 
 .input-icon {
     position: absolute;
-    left: 1rem;
+    left: 1.25rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--accent-color);
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     pointer-events: none;
+    transition: all var(--transition-normal);
+    z-index: 2;
 }
 
-/* Input group */
+.input-with-icon .form-input:focus ~ .input-icon {
+    color: var(--accent-light);
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Input Group */
 .input-group {
     display: flex;
     align-items: stretch;
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .input-group .form-input {
@@ -108,6 +152,7 @@ textarea.form-input::placeholder {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     flex: 1;
+    margin: 0;
 }
 
 .input-group .input-group-append {
@@ -118,14 +163,23 @@ textarea.form-input::placeholder {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     height: 100%;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Custom checkbox */
+/* Enhanced Custom Checkbox */
 .checkbox-container {
     display: flex;
     align-items: center;
     margin-bottom: var(--space-md);
     cursor: pointer;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    padding: var(--space-xs);
+    border-radius: var(--radius-md);
+}
+
+.checkbox-container:hover {
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .checkbox-container input {
@@ -138,23 +192,29 @@ textarea.form-input::placeholder {
 
 .checkbox-custom {
     position: relative;
-    height: 20px;
-    width: 20px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 22px;
+    width: 22px;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+    border: 2px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--radius-sm);
     margin-right: var(--space-sm);
-    transition: all var(--transition-normal);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .checkbox-container:hover input ~ .checkbox-custom {
-    background-color: rgba(0, 0, 0, 0.3);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.3));
     border-color: rgba(212, 175, 55, 0.3);
+    transform: scale(1.05);
 }
 
 .checkbox-container input:checked ~ .checkbox-custom {
-    background-color: var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
     border-color: var(--accent-color);
+    box-shadow: 
+        0 0 0 3px rgba(212, 175, 55, 0.2),
+        0 2px 8px rgba(212, 175, 55, 0.3);
 }
 
 .checkbox-custom:after {
@@ -163,13 +223,248 @@ textarea.form-input::placeholder {
     display: none;
     left: 7px;
     top: 3px;
-    width: 5px;
+    width: 6px;
     height: 10px;
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+    transition: all 0.2s ease;
 }
 
 .checkbox-container input:checked ~ .checkbox-custom:after {
     display: block;
+    animation: checkmark-appear 0.3s ease;
+}
+
+@keyframes checkmark-appear {
+    0% {
+        opacity: 0;
+        transform: rotate(45deg) scale(0);
+    }
+    100% {
+        opacity: 1;
+        transform: rotate(45deg) scale(1);
+    }
+}
+
+/* Enhanced URL Input Container */
+.url-input-container {
+    display: flex;
+    max-width: 700px;
+    margin: var(--space-xl) auto;
+    gap: var(--space-sm);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+    border-radius: var(--radius-lg);
+    padding: var(--space-xs);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.url-input-container:focus-within {
+    border-color: rgba(212, 175, 55, 0.3);
+    box-shadow: 
+        0 0 0 3px rgba(212, 175, 55, 0.1),
+        0 12px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.url-input-container #youtube-url {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    flex: 1;
+    margin: 0;
+    padding: 1rem 1.25rem;
+}
+
+.url-input-container #youtube-url:focus {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Select Dropdown Styling */
+select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    padding-right: 3rem;
+}
+
+/* Form Validation States */
+.form-input.error {
+    border-color: var(--error-color);
+    box-shadow: 
+        0 0 0 3px rgba(231, 76, 60, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-input.success {
+    border-color: var(--success-color);
+    box-shadow: 
+        0 0 0 3px rgba(39, 174, 96, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-input.warning {
+    border-color: var(--warning-color);
+    box-shadow: 
+        0 0 0 3px rgba(243, 156, 18, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Error Messages */
+.error-message {
+    color: var(--error-color);
+    font-size: 0.8rem;
+    margin-top: var(--space-xs);
+    min-height: 18px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.error-message::before {
+    content: '⚠';
+    font-size: 0.9rem;
+}
+
+/* Success Messages */
+.success-message {
+    color: var(--success-color);
+    font-size: 0.8rem;
+    margin-top: var(--space-xs);
+    min-height: 18px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.success-message::before {
+    content: '✓';
+    font-size: 0.9rem;
+}
+
+/* Form Loading States */
+.form-input.loading {
+    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* File Input Styling */
+.file-input-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    width: 100%;
+}
+
+.file-input-container input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.file-input-container:hover .file-input-label {
+    border-color: var(--accent-color);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.3));
+    color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+/* Responsive Form Adjustments */
+@media (max-width: 768px) {
+    .form-input,
+    textarea.form-input,
+    select.form-input,
+    #youtube-url {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .url-input-container {
+        flex-direction: column;
+        max-width: 100%;
+        margin: var(--space-lg) auto;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-input {
+        border-radius: var(--radius-lg);
+        border-right: 1px solid rgba(255, 255, 255, 0.12);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .input-group .input-group-append .btn {
+        border-radius: var(--radius-lg);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+
+@media (max-width: 480px) {
+    .form-input,
+    textarea.form-input,
+    select.form-input,
+    #youtube-url {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.9rem;
+    }
+    
+    .input-floating .form-input {
+        padding: 1.25rem 0.875rem 0.625rem;
+    }
+    
+    .input-floating .form-label {
+        left: 0.875rem;
+    }
+    
+    .input-with-icon .form-input {
+        padding-left: 3rem;
+    }
+    
+    .input-icon {
+        left: 1rem;
+        font-size: 1.1rem;
+    }
 }
