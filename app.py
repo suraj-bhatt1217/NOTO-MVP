@@ -18,6 +18,7 @@ import os
 import re
 from dotenv import load_dotenv
 from services.bright_data import BrightDataService
+import traceback
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -206,20 +207,34 @@ def home():
 
 @app.route("/auth", methods=["POST"])
 def authorize():
+    logger.info("🔵 /auth endpoint called")
+    
     token = request.headers.get("Authorization")
+    logger.info(f"🔵 Authorization header present: {token is not None}")
+    
     if not token or not token.startswith("Bearer "):
+        logger.error("❌ Missing or invalid Authorization header")
         return "Unauthorized", 401
 
     token = token[7:]  # Strip off 'Bearer ' to get the actual token
+    logger.info(f"🔵 Extracted token length: {len(token)}")
 
     try:
+        logger.info("🔵 Attempting to verify ID token...")
         decoded_token = auth.verify_id_token(
             token, check_revoked=True, clock_skew_seconds=60
         )  # Validate token here
+        logger.info(f"🔵 Token verification successful for user: {decoded_token.get('uid')}")
+        logger.info(f"🔵 User email: {decoded_token.get('email')}")
+        
         session["user"] = decoded_token  # Add user to session
+        logger.info("🔵 User added to session, redirecting to dashboard")
         return redirect(url_for("dashboard"))
 
-    except:
+    except Exception as e:
+        logger.error(f"❌ Token verification failed: {str(e)}")
+        logger.error(f"❌ Error type: {type(e).__name__}")
+        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         return "Unauthorized", 401
 
 

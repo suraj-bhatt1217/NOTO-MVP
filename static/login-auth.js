@@ -50,35 +50,51 @@ if (forgotPasswordButtonEl) {
 
 // Function to sign in with Google authentication
 async function authSignInWithGoogle() {
+    console.log('🔵 Google Sign-in button clicked');
+    
     // Configure Google Auth provider with custom parameters
     provider.setCustomParameters({
         'prompt': 'select_account'
     });
+    
+    console.log('🔵 Google Auth provider configured');
 
     try {
+        console.log('🔵 Attempting signInWithPopup...');
         // Attempt to sign in with a popup and retrieve user data
         const result = await signInWithPopup(auth, provider);
+        console.log('🔵 signInWithPopup successful, result:', result);
 
         // Check if the result or user object is undefined or null
         if (!result || !result.user) {
+            console.error('❌ No user data returned from Google Sign-in');
             throw new Error('Authentication failed: No user data returned.');
         }
 
         const user = result.user;
         const email = user.email;
+        console.log('🔵 User data extracted:', { uid: user.uid, email: email, displayName: user.displayName });
 
         // Ensure the email is available in the user data
         if (!email) {
+            console.error('❌ No email address returned from Google Sign-in');
             throw new Error('Authentication failed: No email address returned.');
         }
 
+        console.log('🔵 Getting ID token...');
         // Retrieve ID token for the user
         const idToken = await user.getIdToken();
+        console.log('🔵 ID token retrieved successfully, length:', idToken.length);
 
         // Log in the user using the obtained ID token
+        console.log('🔵 Calling loginUser function...');
         loginUser(user, idToken);
 
     } catch (error) {
+        console.error('❌ Error during Google Sign-in:', error);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Full error object:', error);
         // Handle errors by logging and potentially updating the UI
         handleLogging(error, 'Error during sign-in with Google');
     }
@@ -88,21 +104,31 @@ async function authSignInWithGoogle() {
 
 // Function to create new account with Google auth - will also sign in existing users
 async function authSignUpWithGoogle() {
+    console.log('🔵 Google Sign-up button clicked');
+    
     provider.setCustomParameters({
         'prompt': 'select_account'
     });
 
     try {
+        console.log('🔵 Attempting Google signup with popup...');
         const result = await signInWithPopup(auth, provider);
+        console.log('🔵 Google signup successful, result:', result);
+        
         const user = result.user;
         const email = user.email;
+        console.log('🔵 Signup user data:', { uid: user.uid, email: email });
 
         // Sign in user
+        console.log('🔵 Getting ID token for signup...');
         const idToken = await user.getIdToken();
+        console.log('🔵 Signup ID token retrieved');
         loginUser(user, idToken);
     } catch (error) {
         // The AuthCredential type that was used or other errors.
-        console.error("Error during Google signup: ", error.message);
+        console.error("❌ Error during Google signup:", error);
+        console.error("❌ Signup error code:", error.code);
+        console.error("❌ Signup error message:", error.message);
         // Handle error appropriately here, e.g., updating UI to show an error message
     }
 }
@@ -220,6 +246,20 @@ function resetPassword() {
 
 
 function loginUser(user, idToken) {
+    console.log('🔵 loginUser called with user:', { uid: user.uid, email: user.email });
+    console.log('🔵 ID token length:', idToken.length);
+    
+    const requestData = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+        },
+        credentials: 'same-origin'
+    };
+    
+    console.log('🔵 Making fetch request to /auth with headers:', requestData.headers);
+    
     fetch('/auth', {
         method: 'POST',
         headers: {
@@ -228,14 +268,30 @@ function loginUser(user, idToken) {
         },
         credentials: 'same-origin'  // Ensures cookies are sent with the request
     }).then(response => {
+        console.log('🔵 Received response from /auth:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+        
         if (response.ok) {
+            console.log('🔵 Login successful, redirecting to dashboard...');
             window.location.href = '/dashboard';
         } else {
-            console.error('Failed to login');
+            console.error('❌ Login failed with status:', response.status);
+            response.text().then(text => {
+                console.error('❌ Response body:', text);
+            });
             // Handle errors here
         }
     }).catch(error => {
-        console.error('Error with Fetch operation: ', error);
+        console.error('❌ Fetch error during login:', error);
+        console.error('❌ Network error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
     });
 }
 
