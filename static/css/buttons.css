@@ -4,8 +4,9 @@
     align-items: center;
     justify-content: center;
     padding: 0.75rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     border-radius: var(--radius-md);
     text-align: center;
     text-decoration: none;
@@ -70,12 +71,14 @@
 
 .btn-large {
     padding: 1rem 2rem;
-    font-size: 1.1rem;
+    font-size: 1.125rem;
+    font-weight: 700;
 }
 
 .btn-small {
     padding: 0.6rem 1.2rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     min-width: 100px;
 }
 
@@ -135,8 +138,9 @@
     color: white;
     border: none;
     padding: 0.9rem 1.8rem;
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -193,8 +197,9 @@
     color: white !important;
     border: none !important;
     padding: 0.9rem 1.8rem !important;
-    font-size: 1.1rem !important;
-    font-weight: 600 !important;
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
     border-radius: var(--radius-md) !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
@@ -221,8 +226,9 @@
     color: white;
     border: none;
     padding: 0.9rem 1.8rem;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     border-radius: var(--radius-md);
     cursor: not-allowed;
     position: relative;
@@ -246,8 +252,8 @@
     align-items: center;
     justify-content: center;
     padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.875rem;
+    font-weight: 600;
     text-decoration: none;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -266,7 +272,7 @@
 
 .view-summary, .view-all {
     color: var(--accent-color);
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
     transition: all var(--transition-normal);
 }

@@ -26,16 +26,18 @@
     align-items: center;
     text-decoration: none;
     color: var(--text-primary);
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1.25rem;
+    letter-spacing: -0.02em;
     gap: var(--space-xs);
 }
 
 .navbar-item {
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     padding: var(--space-xs) var(--space-sm);
     position: relative;
     transition: all var(--transition-normal);
@@ -63,7 +65,7 @@
 
 .navbar-item.active {
     color: var(--accent-color);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .navbar-item.active::after {
@@ -79,9 +81,9 @@
 }
 
 .logo-text {
-    font-family: var(--font-serif);
-    font-weight: 700;
-    letter-spacing: -0.03em;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.025em;
 }
 
 .logo-text span {
@@ -144,13 +146,14 @@
 }
 
 .user-name {
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.875rem;
+    font-weight: 600;
     color: var(--text-primary);
 }
 
 .user-status {
     font-size: 0.75rem;
+    font-weight: 500;
     color: var(--accent-color);
 }
 
@@ -180,7 +183,8 @@
     padding: var(--space-md);
     text-decoration: none;
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 500;
     transition: all var(--transition-normal);
 }
 

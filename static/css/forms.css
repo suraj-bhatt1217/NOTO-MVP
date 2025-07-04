@@ -6,7 +6,9 @@
 .form-label {
     display: block;
     margin-bottom: var(--space-xs);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     color: var(--text-secondary);
 }
 
@@ -20,8 +22,9 @@ select.form-input,
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: 0.95rem;
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    font-weight: 400;
     transition: all var(--transition-normal);
     box-sizing: border-box;
 }
@@ -126,6 +129,7 @@ textarea.form-input::placeholder {
     align-items: center;
     margin-bottom: var(--space-md);
     cursor: pointer;
+    font-weight: 500;
 }
 
 .checkbox-container input {

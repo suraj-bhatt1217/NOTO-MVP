@@ -53,12 +53,12 @@
 }
 
 .hero-content h1 {
-    font-size: 3.5rem;
+    font-size: 4rem;
     margin-bottom: var(--space-lg);
     color: var(--text-primary);
-    line-height: 1.1;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.03em;
     position: relative;
 }
 
@@ -74,14 +74,12 @@
 }
 
 .subtitle {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     margin-bottom: var(--space-xl);
     color: var(--text-secondary);
     max-width: 600px;
-    line-height: 1.6;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
+    line-height: 1.65;
+    font-weight: 400;
 }
 
 .hero-image {
@@ -132,9 +130,10 @@
 }
 
 .dashboard-title {
-    font-family: var(--font-serif);
+    font-family: var(--font-heading);
     font-size: 2.5rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     margin: 0;
     color: var(--text-primary);
 }
@@ -169,6 +168,8 @@
     font-size: 1.6rem;
     margin-bottom: var(--space-lg);
     color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.01em;
     position: relative;
     display: inline-block;
 }
@@ -450,6 +451,8 @@
     font-size: 2.5rem;
     margin-bottom: var(--space-sm);
     color: var(--text-primary);
+    font-weight: 800;
+    letter-spacing: -0.02em;
     text-align: center;
 }
 
@@ -468,19 +471,21 @@
     font-size: 1.5rem;
     margin-bottom: var(--space-md);
     color: var(--accent-color);
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .legal-section h3 {
     font-size: 1.2rem;
     margin: var(--space-md) 0 var(--space-sm);
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .legal-section p {
     margin-bottom: var(--space-md);
-    line-height: 1.6;
+    line-height: 1.65;
+    font-weight: 400;
 }
 
 .legal-section ul {
@@ -490,7 +495,7 @@
 
 .legal-section li {
     margin-bottom: var(--space-sm);
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .legal-section a {
