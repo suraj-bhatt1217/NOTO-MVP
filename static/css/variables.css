@@ -1,27 +1,29 @@
-/* CSS Variables - Theme Colors & Global Settings */
+/* Modern SaaS Theme Variables */
 :root {
-    /* Luxury theme colors */
-    --primary-bg: #121212;
-    --secondary-bg: #1a1a1a;
-    --tertiary-bg: #222222;
-    --accent-color: #d4af37;
-    --accent-dark: #aa8c2c;
-    --accent-light: #f0e6c9;
-    --accent-transparent: rgba(212, 175, 55, 0.15);
-    --text-primary: #ffffff;
-    --text-secondary: #e0e0e0;
-    --text-tertiary: #b0b0b0;
-    --success-color: #27ae60;
-    --error-color: #e74c3c;
-    --warning-color: #f39c12;
-    --info-color: #3498db;
+    /* Light Modern SaaS Colors */
+    --primary-bg: #ffffff;
+    --secondary-bg: #f8fafc;
+    --tertiary-bg: #f1f5f9;
+    --accent-color: #f97316;
+    --accent-dark: #ea580c;
+    --accent-light: #fb923c;
+    --accent-transparent: rgba(249, 115, 22, 0.1);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
     
-    /* Shadows */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
-    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3);
-    --shadow-gold-sm: 0 2px 8px rgba(212, 175, 55, 0.15);
-    --shadow-gold-md: 0 5px 15px rgba(212, 175, 55, 0.2);
+    /* Light Theme Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.15);
+    --shadow-orange-sm: 0 2px 8px rgba(249, 115, 22, 0.15);
+    --shadow-orange-md: 0 5px 15px rgba(249, 115, 22, 0.2);
     
     /* Modern Typography System */
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -81,10 +83,11 @@
     --space-3xl: 4rem;
     
     /* Border Radius */
-    --radius-sm: 4px;
+    --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
+    --radius-2xl: 20px;
     --radius-pill: 9999px;
     
     /* Transitions */
@@ -106,4 +109,29 @@
     --sidebar-width: 280px;
     --container-max: 1400px;
     --container-content: 1140px;
+    
+    /* Card Colors for Different Types */
+    --card-yellow: #fef3c7;
+    --card-blue: #dbeafe;
+    --card-pink: #fce7f3;
+    --card-green: #d1fae5;
+    --card-purple: #e9d5ff;
+    --card-orange: #fed7aa;
+    
+    /* Border Colors */
+    --border-light: #e2e8f0;
+    --border-medium: #cbd5e1;
+    --border-dark: #94a3b8;
+}
+
+/* Dark mode variables (for potential future use) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-bg: #0f172a;
+        --secondary-bg: #1e293b;
+        --tertiary-bg: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #cbd5e1;
+    }
 }
