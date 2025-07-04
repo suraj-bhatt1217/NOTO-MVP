@@ -1,0 +1,152 @@
+@@ .. @@
+ /* Auth Pages Stylesheet - YTNotes Premium */
+
+ /* Import base variables and fonts */
+-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
++@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+ :root {
+@@ .. @@
+     
+     /* Fonts */
+-    --font-serif: 'Playfair Display', Georgia, serif;
+-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
++    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
++    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
++    --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', monospace;
++    
++    /* Legacy compatibility */
++    --font-serif: var(--font-heading);
++    --font-sans: var(--font-primary);
+     
+     /* Spacing */
+@@ .. @@
+ body {
+     color: var(--text-primary);
+     background-color: var(--primary-bg);
+-    font-family: var(--font-sans);
++    font-family: var(--font-primary);
+     font-weight: 400;
+     line-height: 1.7;
+     min-height: 100vh;
+@@ .. @@
+ 
+ /* Typography */
+ h1, h2, h3, h4, h5, h6 {
+-    font-family: var(--font-serif);
++    font-family: var(--font-heading);
+     font-weight: 600;
+     color: var(--text-primary);
+     letter-spacing: -0.01em;
+@@ .. @@
+ 
+ h1 {
+-    font-size: 2.75rem;
+-    font-weight: 700;
+-    letter-spacing: -0.02em;
++    font-size: 3rem;
++    font-weight: 800;
++    letter-spacing: -0.025em;
++    line-height: 1.1;
+ }
+
+@@ .. @@
+ p {
+     color: var(--text-secondary);
+-    font-family: var(--font-sans);
++    font-family: var(--font-primary);
+     margin-bottom: var(--space-md);
+-    line-height: 1.7;
++    line-height: 1.6;
++    font-weight: 400;
+ }
+
+@@ .. @@
+ .logo-text {
+-    font-family: var(--font-serif);
++    font-family: var(--font-heading);
+     font-size: 1.75rem;
+-    font-weight: 600;
++    font-weight: 700;
++    letter-spacing: -0.02em;
+     color: var(--text-primary);
+ }
+
+@@ .. @@
+ .form-header h1 {
+     margin-bottom: var(--space-xs);
+     background: linear-gradient(to right, var(--accent-color), var(--accent-light));
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent;
+     background-clip: text;
+     color: transparent;
+     display: inline-block;
+-    font-size: 2.2rem;
++    font-size: 2.5rem;
++    font-weight: 800;
++    letter-spacing: -0.025em;
+ }
+
+@@ .. @@
+ .input-group label {
+     display: block;
+     margin-bottom: var(--space-xs);
+     color: var(--text-secondary);
+-    font-size: 0.9rem;
+-    font-weight: 500;
++    font-size: 0.875rem;
++    font-weight: 600;
++    letter-spacing: 0.01em;
+ }
+
+@@ .. @@
+ .input-group input {
+     width: 100%;
+     padding: 0.8rem 1rem;
+     background-color: rgba(0, 0, 0, 0.2);
+     border: 1px solid rgba(255, 255, 255, 0.1);
+     border-radius: var(--radius-md);
+     color: var(--text-primary);
+-    font-family: var(--font-sans);
+-    font-size: 0.95rem;
++    font-family: var(--font-primary);
++    font-size: 1rem;
++    font-weight: 400;
+     transition: all var(--transition-normal);
+ }
+
+@@ .. @@
+ .auth-btn {
+     width: 100%;
+     padding: 0.8rem;
+     background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+     color: var(--primary-bg);
+     border: none;
+     border-radius: var(--radius-md);
+-    font-family: var(--font-sans);
+-    font-size: 0.95rem;
++    font-family: var(--font-primary);
++    font-size: 1rem;
+     font-weight: 600;
++    letter-spacing: 0.01em;
+     cursor: pointer;
+     transition: all var(--transition-normal);
+     margin-bottom: var(--space-md);
+@@ .. @@
+ .auth-links a {
+     color: var(--accent-color);
+-    font-weight: 500;
++    font-weight: 600;
+     position: relative;
+ }
+
+@@ .. @@
+ .divider span {
+     padding: 0 var(--space-md);
+-    font-size: 0.85rem;
+-    font-weight: 500;
++    font-size: 0.875rem;
++    font-weight: 600;
++    letter-spacing: 0.05em;
++    text-transform: uppercase;
+ }

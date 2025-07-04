@@ -17,8 +17,8 @@
 
     <main class="videos-container">
       <div class="page-header">
-        <h1>My Video Notes</h1>
-        <p class="subtitle">All your processed videos and summaries in one place</p>
+        <h1 class="leading-none tracking-tighter text-center">My Video Notes</h1>
+        <p class="subtitle text-lg leading-relaxed text-center">All your processed videos and summaries in one place</p>
       </div>
 
       <div class="video-grid">
@@ -31,18 +31,18 @@
                 </a>
               </div>
               <div class="video-card-body">
-                <h3 class="video-title">{{ video.title }}</h3>
+                <h3 class="video-title text-lg font-semibold leading-snug">{{ video.title }}</h3>
                 <div class="video-meta">
-                  <span class="video-duration">{{ video.duration_minutes }} minutes</span>
-                  <span class="video-date">{{ video.processed_at.strftime('%b %d, %Y') if video.processed_at else 'Unknown date' }}</span>
+                  <span class="video-duration text-sm font-medium">{{ video.duration_minutes }} minutes</span>
+                  <span class="video-date text-sm">{{ video.processed_at.strftime('%b %d, %Y') if video.processed_at else 'Unknown date' }}</span>
                 </div>
-                <button class="view-summary-btn" data-video-id="{{ video.video_id }}">View Notes</button>
+                <button class="view-summary-btn font-medium" data-video-id="{{ video.video_id }}">View Notes</button>
               </div>
             </div>
           {% endfor %}
         {% else %}
           <div class="empty-state">
-            <p>You haven't processed any videos yet.</p>
+            <p class="text-base">You haven't processed any videos yet.</p>
             <a href="{{ url_for('dashboard') }}" class="btn-primary">Go to Dashboard</a>
           </div>
         {% endif %}
@@ -54,9 +54,9 @@
       <div class="modal-content">
         <span class="close-modal">&times;</span>
         <div id="summary-content">
-          <h2 id="summary-title">Video Title</h2>
+          <h2 id="summary-title" class="text-3xl font-bold tracking-tight">Video Title</h2>
           <div class="modal-actions">
-            <button id="download-notes-btn" class="btn-primary">Download Notes</button>
+            <button id="download-notes-btn" class="btn-primary font-semibold">Download Notes</button>
           </div>
           <div id="summary-body" class="markdown-content"></div>
         </div>
