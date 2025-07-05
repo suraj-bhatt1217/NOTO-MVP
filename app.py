@@ -1009,13 +1009,13 @@ def generate_summary(transcript, plan_type, title, channel):
     
     # For single chunks or free tier, process directly
     if len(transcript_chunks) == 1 or plan_type == "free":
-        prompt = f"Video Title: {title}\nChannel: {channel}\n\nTranscript: {transcript_chunks[0]}"
+        prompt = f"Transcript: {transcript_chunks[0]}"
         
         try:
             response = openai.chat.completions.create(
-                model="gpt-4o" if plan_type != "free" else "gpt-4o-mini",  # Use full GPT-4o for paid tiers
+                model="gpt-4o" if plan_type != "free" else "gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": f"{system_prompt}\n\nVideo Title: {title}\nChannel: {channel}"},
                     {"role": "user", "content": prompt},
                 ],
                 max_tokens=max_tokens,
@@ -1031,16 +1031,17 @@ def generate_summary(transcript, plan_type, title, channel):
     else:
         # First pass: Generate summaries for each chunk
         chunk_summaries = []
-        chunk_system_prompt = """Summarize this portion of a transcript comprehensively.
+        chunk_system_prompt = f"""Summarize this portion of a transcript comprehensively.
+        Video: {title} by {channel}
         Don't conclude or wrap up - this is just one part of a longer transcript.
         Maintain all key information, including specific details, numbers, and technical terms."""
         
         for i, chunk in enumerate(transcript_chunks):
             try:
-                chunk_prompt = f"Video Title: {title}\nChannel: {channel}\n\nThis is part {i+1} of {len(transcript_chunks)} of the transcript:\n\n{chunk}"
+                chunk_prompt = f"This is part {i+1} of {len(transcript_chunks)} of the transcript:\n\n{chunk}"
                 
                 response = openai.chat.completions.create(
-                    model="gpt-4o",  # Use full GPT-4o for chunk processing
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": chunk_system_prompt},
                         {"role": "user", "content": chunk_prompt},
@@ -1057,11 +1058,11 @@ def generate_summary(transcript, plan_type, title, channel):
         # Second pass: Combine the summaries into a final, structured result
         combined_summary = "\n\n---\n\n".join(chunk_summaries)
         
-        final_prompt = f"Video Title: {title}\nChannel: {channel}\n\nBelow are summaries of different sections of the transcript. Please create a cohesive final summary according to the specified format:\n\n{combined_summary}"
+        final_prompt = f"Below are summaries of different sections of the transcript. Please create a cohesive final summary according to the specified format:\n\n{combined_summary}"
         
         try:
             response = openai.chat.completions.create(
-                model="gpt-4o",  # Use full GPT-4o for final synthesis
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": final_prompt},
