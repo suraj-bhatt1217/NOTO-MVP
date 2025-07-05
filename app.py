@@ -111,7 +111,13 @@ SUBSCRIPTION_PLANS = {
 ########################################
 """ Authentication and Authorization """
 
+import psutil
+import os
 
+def log_memory_usage(stage):
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    print(f"[{stage}] Memory usage: {mem_info.rss / (1024 * 1024):.2f} MB")
 # Decorator for routes that require authentication
 def auth_required(f):
     @wraps(f)
@@ -764,13 +770,13 @@ async def process_video_summary(video_url, user_id):
                 'channel': "Channel Name"
             }
             db.collection("videos").document(video_id).set(video_data, merge=True)
-            
+            log_memory_usage("Processing complete")
             return jsonify({
                 "status": "success",
                 "video_id": video_id,
                 "summary": summary
             })
-        
+        log_memory_usage("Processing complete")
         return jsonify({
             "status": "processing",
             "message": message or "Video is being processed. You'll be notified when it's ready."
@@ -891,7 +897,9 @@ def bright_data_webhook():
                     error_msg = f"Error updating user usage: {str(e)}"
                     logger.error(error_msg, exc_info=True)
             
+            
             logger.info(f"Successfully processed webhook for video: {video_id}")
+            log_memory_usage("Processing complete")
             return jsonify({"status": "success"})
             
         except json.JSONDecodeError as je:
