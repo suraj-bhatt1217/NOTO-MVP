@@ -341,7 +341,7 @@ def dashboard():
         .get("next_billing_date", datetime.now())
         .strftime("%B %d, %Y"),
         "recent_videos": user_data.get("usage", {}).get("video_history", [])[
-            :5
+            :3
         ],  # Get last 5 videos
     }
 
