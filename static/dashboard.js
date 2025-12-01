@@ -122,8 +122,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(responseData.error || 'Failed to start processing video');
             }
             
-            // Show success message
-            showToast('Video is being processed. It will appear in your history when ready!', 'success');
+            // If video is already completed, show summary immediately
+            if (responseData.status === 'completed' || responseData.status === 'success') {
+                showToast('Video processed successfully!', 'success');
+                // Redirect to my-videos page
+                setTimeout(() => {
+                    window.location.href = '/my-videos';
+                }, 1500);
+                return;
+            }
+            
+            // If processing, show message and redirect to My Videos page
+            // The webhook will update the database when ready, user can refresh to see it
+            if (responseData.status === 'processing') {
+                showToast('Video is being processed! Redirecting to My Videos...', 'success');
+                // Redirect to my-videos page where they can see processing status
+                setTimeout(() => {
+                    window.location.href = '/my-videos';
+                }, 2000);
+            } else {
+                showToast('Video is being processed. It will appear in your history when ready!', 'success');
+            }
             
             // Reset the form
             videoPreview.classList.add('hidden');

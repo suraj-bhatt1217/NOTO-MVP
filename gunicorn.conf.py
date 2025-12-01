@@ -1,5 +1,10 @@
 # gunicorn.conf.py
 import multiprocessing
+import os
+import sys
+
+# Bind to Railway's PORT environment variable, or default to 8080
+bind = f"0.0.0.0:{os.getenv('PORT', '8080')}"
 
 # Number of workers = (2 x num_cores) + 1
 workers = 1  # Reduced to 1 worker to minimize memory usage
@@ -10,3 +15,10 @@ max_requests = 1000
 max_requests_jitter = 50
 timeout = 120
 keepalive = 5
+
+# Logging configuration - CRITICAL for Railway
+accesslog = '-'  # Log to stdout
+errorlog = '-'   # Log to stderr
+loglevel = 'info'
+capture_output = True  # Capture stdout/stderr
+enable_stdio_inheritance = True  # Inherit stdout/stderr

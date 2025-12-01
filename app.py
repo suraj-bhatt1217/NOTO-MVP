@@ -20,8 +20,32 @@ from dotenv import load_dotenv
 from services.bright_data import BrightDataService
 
 import logging
-logging.basicConfig(level=logging.INFO)
+import sys
+
+# Configure logging to go to stdout/stderr for Railway
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Send to stdout for Railway
+    ],
+    force=True  # Override any existing configuration
+)
 logger = logging.getLogger(__name__)
+
+# Make sure print statements are flushed immediately
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except:
+    pass  # Some Python versions don't support reconfigure
+
+# Helper function to ensure logs appear in Railway
+def log_print(*args, **kwargs):
+    """Print that also logs and flushes immediately"""
+    message = ' '.join(str(arg) for arg in args)
+    logger.info(message)
+    print(*args, **kwargs, flush=True)
 
 # Initialize BrightData service
 bright_data_service = BrightDataService()
@@ -622,6 +646,26 @@ def my_videos():
 @auth_required
 def get_video_details(video_id):
     user_id = session["user"]["uid"]
+    
+    # First check the videos collection directly
+    video_ref = db.collection("videos").document(video_id)
+    video_doc = video_ref.get()
+    
+    if video_doc.exists:
+        video_data = video_doc.to_dict()
+        # Only return if it belongs to this user or is completed
+        if video_data.get('user_id') == user_id or video_data.get('status') == 'completed':
+            return jsonify({
+                "video_id": video_id,
+                "title": video_data.get('title', 'Untitled'),
+                "summary": video_data.get('summary', ''),
+                "status": video_data.get('status', 'processing'),
+                "channel_name": video_data.get('channel_name', ''),
+                "thumbnail_url": video_data.get('thumbnail_url', ''),
+                "video_length": video_data.get('video_length', 0)
+            })
+    
+    # Fallback: check user's video history
     user_ref = db.collection("users").document(user_id)
     user_doc = user_ref.get()
 
@@ -635,7 +679,7 @@ def get_video_details(video_id):
         if video.get("video_id") == video_id:
             return jsonify(video)
 
-    return jsonify({"error": "Video not found in user history"}), 404
+    return jsonify({"error": "Video not found", "status": "processing"}), 404
 
 
 import asyncio
@@ -646,8 +690,11 @@ import traceback
 @plan_checker
 def summarize_video():
     """Handle video summarization"""
-    print("\n=== /summarize endpoint called ===")
-    print(f"Request data: {request.get_data()}")
+    logger.info("="*80)
+    logger.info("=== /summarize endpoint called ===")
+    logger.info(f"Request data: {request.get_data()}")
+    print("\n=== /summarize endpoint called ===", flush=True)
+    print(f"Request data: {request.get_data()}", flush=True)
     
     try:
         data = request.get_json()
@@ -789,16 +836,7 @@ async def process_video_summary(video_url, user_id):
 @app.route("/api/webhooks/brightdata", methods=["POST"])
 def bright_data_webhook():
     """Handle incoming webhooks from Bright Data"""
-    print("\n" + "="*80)
-    print("BRIGHT DATA WEBHOOK RECEIVED")
-    print("="*80)
     logger.info("--- BRIGHT DATA WEBHOOK RECEIVED ---")
-    
-    print(f"Request Method: {request.method}")
-    print(f"Request URL: {request.url}")
-    print(f"Headers:")
-    for key, value in request.headers:
-        print(f"  {key}: {value}")
     logger.info(f"Headers: {dict(request.headers)}")
     
     try:
@@ -807,49 +845,28 @@ def bright_data_webhook():
         expected_auth = f"Bearer {os.getenv('WEBHOOK_AUTH_SECRET')}"
         
         if not auth_header or auth_header != expected_auth:
-            print(f"\n⚠️  WARNING: Invalid or missing webhook signature")
-            print(f"Expected: {expected_auth}")
-            print(f"Got: {auth_header}")
             logger.warning(f"Invalid or missing webhook signature. Expected: {expected_auth}, Got: {auth_header}")
             return jsonify({"status": "error", "message": "Unauthorized"}), 401
             
         # Parse and validate the webhook data
         try:
             payload = request.get_json()
-            print(f"\n📦 RAW WEBHOOK PAYLOAD:")
-            print(json.dumps(payload, indent=2, default=str))
-            print("="*80)
-            
-            # Save webhook payload to file for analysis
-            try:
-                with open('bright_data_webhook.json', 'w', encoding='utf-8') as f:
-                    json.dump(payload, f, indent=2, default=str)
-                print(f"💾 Webhook payload saved to: bright_data_webhook.json")
-            except Exception as save_error:
-                logger.warning(f"Could not save webhook to file: {save_error}")
-            
             logger.info(f"Received webhook payload: {json.dumps(payload, indent=2)}")
             
             parsed_data = BrightDataService.parse_webhook_data(payload)
-            print(f"\n✅ PARSED WEBHOOK DATA:")
-            print(json.dumps(parsed_data, indent=2, default=str))
-            print("="*80)
             logger.info(f"Parsed webhook data: {json.dumps(parsed_data, indent=2, default=str)}")
             
             if not parsed_data.get('valid'):
                 error_msg = f"Invalid webhook data: {parsed_data.get('error')}"
-                print(f"\n❌ ERROR: {error_msg}\n")
                 logger.error(error_msg)
                 return jsonify({"status": "error", "message": error_msg}), 400
                 
             video_id = parsed_data.get('video_id')
             if not video_id:
                 error_msg = "Missing video_id in parsed data"
-                print(f"\n❌ ERROR: {error_msg}\n")
                 logger.error(error_msg)
                 return jsonify({"status": "error", "message": error_msg}), 400
             
-            print(f"\n🎬 Processing webhook for video: {video_id}")
             logger.info(f"Processing webhook for video: {video_id}")
             
             # Prepare video data for update
@@ -886,7 +903,8 @@ def bright_data_webhook():
                 
                 if user_doc.exists:
                     user_data = user_doc.to_dict()
-                    plan_type = user_data.get('plan', 'free')
+                    # Get plan from subscription object, not directly from user_data
+                    plan_type = user_data.get('subscription', {}).get('plan', 'free')
                     
                     # Generate summary if transcript exists
                     transcript = parsed_data.get('transcript', '')
@@ -905,101 +923,72 @@ def bright_data_webhook():
                             error_msg = f"Error generating summary: {str(e)}"
                             logger.error(error_msg, exc_info=True)
                             video_data['summary'] = "Error generating summary. Please try again later."
+                else:
+                    logger.warning(f"User document not found for user_id: {video_data.get('user_id')}")
             else:
                 logger.warning(f"No existing video document found for video_id: {video_id}")
+                logger.warning("Webhook received but video was not previously submitted. This might be a test webhook.")
             
             # Save to database
             logger.info(f"Updating video document in Firestore: {video_id}")
             video_ref.set(video_data, merge=True)
             
-            # Update user usage
-            if 'user_id' in video_data and 'video_length' in video_data:
+            # Update user usage - CRITICAL: This adds video to user's history and updates duration bar
+            if 'user_id' in video_data and video_data.get('user_id') and 'video_length' in video_data and video_data.get('video_length', 0) > 0:
                 try:
+                    duration_minutes = video_data['video_length'] / 60  # Convert seconds to minutes
+                    logger.info(f"Updating user usage: user_id={video_data['user_id']}, duration={duration_minutes}min, video_id={video_id}")
                     update_user_usage(
                         user_id=video_data['user_id'],
-                        duration_minutes=video_data['video_length'] / 60,  # Convert seconds to minutes
+                        duration_minutes=duration_minutes,
                         video_id=video_id,
                         title=video_data.get('title', 'Untitled'),
                         summary=video_data.get('summary', '')
                     )
-                    logger.info(f"Updated usage for user: {video_data['user_id']}")
+                    logger.info(f"✅ Successfully updated usage for user: {video_data['user_id']}")
                 except Exception as e:
-                    error_msg = f"Error updating user usage: {str(e)}"
+                    error_msg = f"❌ Error updating user usage: {str(e)}"
                     logger.error(error_msg, exc_info=True)
+                    print(f"\n{error_msg}\n")
+            else:
+                missing = []
+                if 'user_id' not in video_data or not video_data.get('user_id'):
+                    missing.append('user_id')
+                if 'video_length' not in video_data or not video_data.get('video_length', 0):
+                    missing.append('video_length')
+                logger.warning(f"⚠️ Cannot update user usage - missing: {missing}")
+                print(f"\n⚠️ WARNING: Cannot update user usage - missing fields: {missing}\n")
             
             
-            print(f"\n✅ Successfully processed webhook for video: {video_id}")
-            print("="*80 + "\n")
             logger.info(f"Successfully processed webhook for video: {video_id}")
             log_memory_usage("Processing complete")
             return jsonify({"status": "success"})
             
         except json.JSONDecodeError as je:
             error_msg = f"Invalid JSON payload: {str(je)}"
-            print(f"\n❌ JSON DECODE ERROR: {error_msg}\n")
             logger.error(error_msg)
             return jsonify({"status": "error", "message": error_msg}), 400
             
     except Exception as e:
         error_msg = f"Error processing webhook: {str(e)}"
-        print(f"\n❌ EXCEPTION: {error_msg}\n")
         logger.error(error_msg, exc_info=True)
         return jsonify({"status": "error", "message": error_msg}), 500
 
 
-@app.route("/api/test/brightdata", methods=["POST", "GET"])
-def test_bright_data():
-    """
-    Test endpoint to trigger Bright Data API and see the response.
-    For testing purposes only - can be called with GET or POST.
-    
-    GET: /api/test/brightdata?video_id=VIDEO_ID
-    POST: {"video_id": "VIDEO_ID"} or {"video_url": "https://youtube.com/watch?v=VIDEO_ID"}
-    """
-    try:
-        # Get video ID from request
-        if request.method == "GET":
-            video_id = request.args.get("video_id")
-            if not video_id:
-                return jsonify({
-                    "error": "Please provide video_id as query parameter",
-                    "example": "/api/test/brightdata?video_id=fuhE6PYnRMc"
-                }), 400
-        else:
-            data = request.get_json() or {}
-            video_id = data.get("video_id")
-            video_url = data.get("video_url")
-            
-            if video_url and not video_id:
-                # Extract video ID from URL
-                video_id = extract_video_id(video_url)
-            
-            if not video_id:
-                return jsonify({
-                    "error": "Please provide video_id or video_url in request body",
-                    "example": {"video_id": "fuhE6PYnRMc"}
-                }), 400
-        
-        print(f"\n🧪 TEST: Triggering Bright Data API for video: {video_id}")
-        
-        # Trigger the extraction
-        result = asyncio.run(bright_data_service.trigger_transcript_extraction(video_id))
-        
-        return jsonify({
-            "status": "test_complete",
-            "video_id": video_id,
-            "bright_data_response": result,
-            "message": "Check console for detailed response output"
-        })
-        
-    except Exception as e:
-        error_msg = f"Error in test endpoint: {str(e)}"
-        print(f"\n❌ TEST ERROR: {error_msg}\n")
-        logger.error(error_msg, exc_info=True)
-        return jsonify({
-            "error": error_msg,
-            "traceback": traceback.format_exc()
-        }), 500
+@app.route("/api/test/logging", methods=["GET"])
+def test_logging():
+    """Test endpoint to verify logging works in Railway"""
+    logger.info("="*80)
+    logger.info("TEST LOGGING ENDPOINT CALLED")
+    logger.info("="*80)
+    print("="*80, flush=True)
+    print("TEST LOGGING ENDPOINT CALLED", flush=True)
+    print("="*80, flush=True)
+    return jsonify({
+        "status": "success",
+        "message": "If you see this in Railway logs, logging is working!",
+        "timestamp": datetime.now().isoformat()
+    })
 
 
 ############################

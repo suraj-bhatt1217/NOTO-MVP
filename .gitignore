@@ -47,10 +47,6 @@ test_webhook.py
 test_*.py
 *_test.py
 
-# Temporary documentation files
-BRIGHT_DATA_*.md
-QUICK_START.md
-
 # IDE and editor files
 .vscode/
 .idea/
