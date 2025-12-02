@@ -3,6 +3,7 @@ firebase_admin
 gunicorn
 python-dotenv
 requests
+httpx
 youtube-transcript-api
 openai
 razorpay
