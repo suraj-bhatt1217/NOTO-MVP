@@ -34,7 +34,17 @@
                 <h3 class="video-title">{{ video.title }}</h3>
                 <div class="video-meta">
                   <span class="video-duration">{{ video.duration_minutes }} minutes</span>
-                  <span class="video-date">{{ video.processed_at.strftime('%b %d, %Y') if video.processed_at else 'Unknown date' }}</span>
+                  <span class="video-date">
+                    {% if video.processed_at %}
+                      {% if video.processed_at.strftime %}
+                        {{ video.processed_at.strftime('%b %d, %Y') }}
+                      {% else %}
+                        {{ video.processed_at }}
+                      {% endif %}
+                    {% else %}
+                      Unknown date
+                    {% endif %}
+                  </span>
                 </div>
                 <button class="view-summary-btn" data-video-id="{{ video.video_id }}">View Notes</button>
               </div>

@@ -64,14 +64,18 @@ document.addEventListener('DOMContentLoaded', function() {
         summarizeBtn.textContent = 'Loading...';
         summarizeBtn.disabled = true;
         
+        console.log('[FRONTEND DEBUG] Extracting video info for:', url);
         try {
             const response = await fetch('/api/extract-video-info', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',  // Include cookies for session
                 body: JSON.stringify({ video_url: url }),
             });
+            
+            console.log('[FRONTEND DEBUG] Extract video info response status:', response.status);
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -105,18 +109,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        const videoUrl = youtubeUrlInput.value.trim();
+        console.log('[FRONTEND] Making request to /summarize with URL:', videoUrl);
+        
         try {
             const response = await fetch('/summarize', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin',  // Include cookies for session
                 body: JSON.stringify({ 
-                    video_url: youtubeUrlInput.value.trim() 
+                    video_url: videoUrl
                 }),
             });
             
+            console.log('[FRONTEND] Response status:', response.status);
+            console.log('[FRONTEND] Response headers:', response.headers);
+            
             const responseData = await response.json();
+            console.log('[FRONTEND] Response data:', responseData);
             
             if (!response.ok) {
                 throw new Error(responseData.error || 'Failed to start processing video');

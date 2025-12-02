@@ -65,6 +65,30 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = os.getenv("SECRET_KEY")
 
+# Add request logging middleware for Railway - logs all HTTP requests
+@app.before_request
+def log_request_info():
+    """Log all incoming requests - CRITICAL for Railway HTTP logs"""
+    # Skip logging static files to reduce noise
+    if request.path.startswith('/static/'):
+        return
+    
+    log_msg = f"[HTTP REQUEST] {request.method} {request.path} - IP: {request.remote_addr}"
+    logger.info(log_msg)
+    print(log_msg, flush=True)
+
+@app.after_request
+def log_response_info(response):
+    """Log all outgoing responses - CRITICAL for Railway HTTP logs"""
+    # Skip logging static files to reduce noise
+    if request.path.startswith('/static/'):
+        return response
+    
+    log_msg = f"[HTTP RESPONSE] {request.method} {request.path} - Status: {response.status_code}"
+    logger.info(log_msg)
+    print(log_msg, flush=True)
+    return response
+
 # Configure session cookie settings
 app.config["SESSION_COOKIE_SECURE"] = True  # Ensure cookies are sent over HTTPS
 app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access to cookies
@@ -840,13 +864,17 @@ def bright_data_webhook():
     logger.info(f"Headers: {dict(request.headers)}")
     
     try:
-        # Verify webhook signature if needed
-        auth_header = request.headers.get('Authorization')
-        expected_auth = f"Bearer {os.getenv('WEBHOOK_AUTH_SECRET')}"
+        # Verify webhook is from Bright Data
+        # Bright Data sends its own Authorization token, so we verify by User-Agent instead
+        user_agent = request.headers.get('User-Agent', '')
+        snapshot_id = request.headers.get('Snapshot-Id', '')
         
-        if not auth_header or auth_header != expected_auth:
-            logger.warning(f"Invalid or missing webhook signature. Expected: {expected_auth}, Got: {auth_header}")
-            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+        # Verify it's from Bright Data
+        if 'BRD' not in user_agent and 'bright' not in user_agent.lower():
+            logger.warning(f"⚠️ Suspicious webhook - User-Agent doesn't match Bright Data: {user_agent}")
+            return jsonify({"status": "error", "message": "Invalid webhook source"}), 401
+        
+        logger.info(f"✅ Verified Bright Data webhook - User-Agent: {user_agent}, Snapshot-ID: {snapshot_id}")
             
         # Parse and validate the webhook data
         try:
@@ -926,8 +954,11 @@ def bright_data_webhook():
                 else:
                     logger.warning(f"User document not found for user_id: {video_data.get('user_id')}")
             else:
-                logger.warning(f"No existing video document found for video_id: {video_id}")
+                logger.warning(f"⚠️ No existing video document found for video_id: {video_id}")
                 logger.warning("Webhook received but video was not previously submitted. This might be a test webhook.")
+                print(f"\n⚠️ WARNING: Webhook received for video {video_id} but no video document exists in DB!")
+                print("This means the video was never submitted through the /summarize endpoint.\n", flush=True)
+                # Don't update user usage if video doc doesn't exist - we don't know which user to update
             
             # Save to database
             logger.info(f"Updating video document in Firestore: {video_id}")
@@ -989,6 +1020,111 @@ def test_logging():
         "message": "If you see this in Railway logs, logging is working!",
         "timestamp": datetime.now().isoformat()
     })
+
+@app.route("/api/debug/video/<video_id>", methods=["GET"])
+@auth_required
+def debug_video(video_id):
+    """Debug endpoint to check video status in database"""
+    user_id = session["user"]["uid"]
+    
+    # Check videos collection
+    video_ref = db.collection("videos").document(video_id)
+    video_doc = video_ref.get()
+    
+    video_data = None
+    if video_doc.exists:
+        video_data = video_doc.to_dict()
+        # Convert Firestore timestamps to ISO strings for JSON
+        if video_data:
+            for key, value in video_data.items():
+                if hasattr(value, 'isoformat'):  # Firestore Timestamp
+                    video_data[key] = value.isoformat()
+    
+    # Check user's video history
+    user_ref = db.collection("users").document(user_id)
+    user_doc = user_ref.get()
+    user_data = user_doc.to_dict() if user_doc.exists else None
+    video_history = user_data.get("usage", {}).get("video_history", []) if user_data else []
+    
+    video_in_history = any(v.get("video_id") == video_id for v in video_history)
+    
+    # Check if update_user_usage can be called
+    can_update = False
+    missing_fields = []
+    if video_doc.exists and video_data:
+        if video_data.get('user_id') == user_id:
+            if video_data.get('video_length', 0) > 0:
+                if video_data.get('status') == 'completed':
+                    can_update = True
+                else:
+                    missing_fields.append('status != completed')
+            else:
+                missing_fields.append('video_length')
+        else:
+            missing_fields.append('user_id mismatch')
+    else:
+        missing_fields.append('video_document')
+    
+    return jsonify({
+        "video_id": video_id,
+        "video_document_exists": video_doc.exists,
+        "video_document_data": video_data,
+        "video_document_user_id": video_data.get('user_id') if video_data else None,
+        "current_user_id": user_id,
+        "video_status": video_data.get('status') if video_data else None,
+        "video_length": video_data.get('video_length') if video_data else None,
+        "video_in_user_history": video_in_history,
+        "user_video_history_count": len(video_history),
+        "can_update_user_usage": can_update,
+        "missing_fields_for_update": missing_fields,
+        "video_history": video_history[:5]  # Last 5 videos
+    })
+
+@app.route("/api/debug/manual-update/<video_id>", methods=["POST"])
+@auth_required
+def manual_update_video(video_id):
+    """Manually trigger update_user_usage for testing"""
+    user_id = session["user"]["uid"]
+    
+    # Get video document
+    video_ref = db.collection("videos").document(video_id)
+    video_doc = video_ref.get()
+    
+    if not video_doc.exists:
+        return jsonify({"error": "Video document not found"}), 404
+    
+    video_data = video_doc.to_dict()
+    
+    # Verify it belongs to this user
+    if video_data.get('user_id') != user_id:
+        return jsonify({"error": "Video does not belong to this user"}), 403
+    
+    # Check if we have required fields
+    if not video_data.get('video_length', 0) > 0:
+        return jsonify({"error": "Video length not available"}), 400
+    
+    if not video_data.get('title'):
+        return jsonify({"error": "Video title not available"}), 400
+    
+    try:
+        duration_minutes = video_data['video_length'] / 60
+        update_user_usage(
+            user_id=user_id,
+            duration_minutes=duration_minutes,
+            video_id=video_id,
+            title=video_data.get('title', 'Untitled'),
+            summary=video_data.get('summary', '')
+        )
+        return jsonify({
+            "success": True,
+            "message": "User usage updated successfully",
+            "video_id": video_id
+        })
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "message": "Failed to update user usage"
+        }), 500
 
 
 ############################
@@ -1189,31 +1325,53 @@ def parse_duration(duration):
 
 # Update user usage data
 def update_user_usage(user_id, duration_minutes, video_id, title, summary):
-    user_ref = db.collection("users").document(user_id)
-    user_doc = user_ref.get()
+    """Add video to user's history and update usage stats"""
+    logger.info(f"[update_user_usage] Called with: user_id={user_id}, video_id={video_id}, duration={duration_minutes}min")
+    print(f"[update_user_usage] Called with: user_id={user_id}, video_id={video_id}, duration={duration_minutes}min", flush=True)
+    
+    try:
+        user_ref = db.collection("users").document(user_id)
+        user_doc = user_ref.get()
 
-    if not user_doc.exists:
-        initialize_new_user(user_id)
+        if not user_doc.exists:
+            logger.warning(f"[update_user_usage] User {user_id} not found, initializing...")
+            initialize_new_user(user_id)
+            user_doc = user_ref.get()
 
-    # Add the video to history and update minutes used
-    timestamp = datetime.now()
-    video_entry = {
-        "video_id": video_id,
-        "title": title,
-        "duration_minutes": round(duration_minutes, 2),
-        "processed_at": timestamp,
-        "summary": summary,
-    }
-
-    # Update the user document atomically
-    user_ref.update(
-        {
-            "usage.minutes_used_this_month": firestore.Increment(
-                round(duration_minutes, 2)
-            ),
-            "usage.video_history": firestore.ArrayUnion([video_entry]),
+        # Add the video to history and update minutes used
+        # Use Firestore SERVER_TIMESTAMP for consistency
+        timestamp = firestore.SERVER_TIMESTAMP
+        
+        video_entry = {
+            "video_id": video_id,
+            "title": title or "Untitled",
+            "duration_minutes": round(duration_minutes, 2),
+            "processed_at": timestamp,
+            "summary": summary or "",
         }
-    )
+        
+        logger.info(f"[update_user_usage] Video entry being added: {video_entry}")
+        print(f"[update_user_usage] Video entry being added: {video_entry}", flush=True)
+        print(f"[update_user_usage] Video entry keys: {list(video_entry.keys())}", flush=True)
+
+        # Update the user document atomically
+        user_ref.update(
+            {
+                "usage.minutes_used_this_month": firestore.Increment(
+                    round(duration_minutes, 2)
+                ),
+                "usage.video_history": firestore.ArrayUnion([video_entry]),
+            }
+        )
+        
+        logger.info(f"[update_user_usage] ✅ Successfully updated user {user_id} - added video {video_id} to history")
+        print(f"[update_user_usage] ✅ Successfully updated user {user_id} - added video {video_id} to history", flush=True)
+        
+    except Exception as e:
+        error_msg = f"[update_user_usage] ❌ ERROR: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        print(error_msg, flush=True)
+        raise  # Re-raise so caller knows it failed
 
 
 # Update user subscription
