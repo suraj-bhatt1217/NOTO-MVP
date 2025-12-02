@@ -1339,8 +1339,8 @@ def update_user_usage(user_id, duration_minutes, video_id, title, summary):
             user_doc = user_ref.get()
 
         # Add the video to history and update minutes used
-        # Use Firestore SERVER_TIMESTAMP for consistency
-        timestamp = firestore.SERVER_TIMESTAMP
+        # Note: Cannot use SERVER_TIMESTAMP inside ArrayUnion, so use datetime.utcnow() instead
+        timestamp = datetime.utcnow()
         
         video_entry = {
             "video_id": video_id,
